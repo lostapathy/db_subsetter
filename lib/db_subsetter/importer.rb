@@ -18,25 +18,31 @@ module DbSubsetter
     end
 
     def import
-     ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=0;")
-     tables.each do |table|
+      ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=0;")
+      tables.each do |table|
         import_table(table)
       end
-     ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=1;")
+      ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=1;")
+    end
+
+    def insert_batch_size
+      500
     end
 
     private
     def import_table(table)
       ActiveRecord::Base.connection.truncate(table)
-      @data.execute("SELECT data FROM #{table.underscore}") do |row|
-        insert_sql = "INSERT INTO #{quoted_table_name(table)} (#{quoted_column_names(table).join(",")}) VALUES (#{quoted_values(row).join(",")})"
+      all_rows = @data.execute("SELECT data FROM #{table.underscore}")
+      all_rows.each_slice(insert_batch_size) do |rows|
+        quoted_rows = rows.map{ |row| "(" + quoted_values(row).join(",") + ")" }.join(",")
+        insert_sql = "INSERT INTO #{quoted_table_name(table)} (#{quoted_column_names(table).join(",")}) VALUES #{quoted_rows}"
         ActiveRecord::Base.connection.execute(insert_sql)
       end
     end
 
     def quoted_values(row)
       out = JSON.parse(row[0])
-      out = out.map{|x| ActiveRecord::Base.connection.type_cast(x, nil) } #.first, x.last) }
+      out = out.map{|x| ActiveRecord::Base.connection.type_cast(x, nil) }
       out = out.map{|x| ActiveRecord::Base.connection.quote(x) }
       out
     end
