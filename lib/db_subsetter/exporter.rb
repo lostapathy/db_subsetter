@@ -95,7 +95,7 @@ module DbSubsetter
 
         sql = query.skip(i * select_batch_size).take(select_batch_size).project( Arel.sql('*') ).to_sql
 
-        records = ActiveRecord::Base.connection.select_all( sql ).to_a
+        records = ActiveRecord::Base.connection.select_rows( sql )
         records.each_slice(insert_batch_size) do |rows|
           @output.execute("INSERT INTO #{table.underscore} (data) VALUES #{ Array.new(rows.size){"(?)"}.join(",")}", rows.map(&:to_json) )
         end
