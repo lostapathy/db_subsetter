@@ -52,7 +52,7 @@ module DbSubsetter
     end
 
     def select_batch_size
-      insert_batch_size
+      insert_batch_size * 20
     end
 
     def filter
@@ -86,17 +86,17 @@ module DbSubsetter
       verify_table_exportability(table)
 
       @output.execute("create table #{table.underscore} ( data TEXT )")
+      for i in 0..pages(table)
+        query = Arel::Table.new(table, ActiveRecord::Base)
+        # Need to extend this to take more than the first batch_size records
+        query = query.order(query[order_by(table)]) if order_by(table)
 
-      query = Arel::Table.new(table, ActiveRecord::Base)
-      # Need to extend this to take more than the first batch_size records
-      query = query.order(query[order_by(table)]) if order_by(table)
+        sql = query.skip(i * select_batch_size).take(select_batch_size).project( Arel.sql('*') ).to_sql
 
-      sql = query.take(select_batch_size).project( Arel.sql('*') ).to_sql
-
-      records = ActiveRecord::Base.connection.select_all( sql )
-      records = records.to_a
-      if records.size > 0
-        @output.execute("INSERT INTO #{table.underscore} (data) VALUES #{ Array.new(records.size){"(?)"}.join(",")}", records.map(&:to_json) )
+        records = ActiveRecord::Base.connection.select_all( sql ).to_a
+        records.each_slice(insert_batch_size) do |rows|
+          @output.execute("INSERT INTO #{table.underscore} (data) VALUES #{ Array.new(rows.size){"(?)"}.join(",")}", rows.map(&:to_json) )
+        end
       end
     end
 
