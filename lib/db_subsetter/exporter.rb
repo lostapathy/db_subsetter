@@ -26,6 +26,12 @@ module DbSubsetter
       end
     end
 
+    def verify_exportability
+      tables.each do |table|
+        verify_table_exportability(table)
+      end
+    end
+
     def export(filename)
       @output = SQLite3::Database.new(filename)
 
@@ -41,10 +47,13 @@ module DbSubsetter
       10000000
     end
 
-    def batch_size
-      100
+    def insert_batch_size
+      250
     end
 
+    def select_batch_size
+      insert_batch_size
+    end
 
     def filter
       @filter ||= Filter.new
@@ -58,21 +67,37 @@ module DbSubsetter
       ActiveRecord::Base.connection.select_one(query.to_sql).values.first
     end
 
+    def pages(table)
+      ( filtered_row_count(table) / select_batch_size.to_f ).ceil
+    end
+
+    def order_by(table)
+      #TODO should probably allow the user to override this and manually set a sort order?
+      key = ActiveRecord::Base.connection.primary_key(table)
+      key || false
+    end
+
+    def verify_table_exportability(table)
+      raise "ERROR: Multiple pages but no primary key on: #{table}" if pages(table) > 1 && order_by(table).blank?
+      raise "ERROR: Too many rows in: #{table} (#{filtered_row_count(table)})" if( filtered_row_count(table) > max_rows )
+    end
+
     def export_table(table)
+      verify_table_exportability(table)
+
       @output.execute("create table #{table.underscore} ( data TEXT )")
-      raise "too many rows in #{table}" if( filtered_row_count(table) > max_rows )
 
-      query = Arel::Table.new(table, ActiveRecord::Base).project( Arel.sql('*') )
-
+      query = Arel::Table.new(table, ActiveRecord::Base)
       # Need to extend this to take more than the first batch_size records
-      records = ActiveRecord::Base.connection.select_all(query.take(batch_size).to_sql)
-      #records.each do |row|
+      query = query.order(query[order_by(table)]) if order_by(table)
+
+      sql = query.take(select_batch_size).project( Arel.sql('*') ).to_sql
+
+      records = ActiveRecord::Base.connection.select_all( sql )
       records = records.to_a
       if records.size > 0
-          @output.execute("INSERT INTO #{table.underscore} (data) VALUES #{ Array.new(records.size){"(?)"}.join(",")}", records.map(&:to_json) )
+        @output.execute("INSERT INTO #{table.underscore} (data) VALUES #{ Array.new(records.size){"(?)"}.join(",")}", records.map(&:to_json) )
       end
-        #raise "#{row.to_json}"
-      #end
     end
 
   end
