@@ -36,7 +36,7 @@ module DbSubsetter
       verify_exportability
 
       @output = SQLite3::Database.new(filename)
-      @output.execute("CREATE TABLE tables (name TEXT)")
+      @output.execute("CREATE TABLE tables (name TEXT, columns TEXT)")
       tables.each do |table|
         export_table(table)
       end
@@ -85,8 +85,8 @@ module DbSubsetter
     end
 
     def export_table(table)
-      #verify_table_exportability(table)
-      @output.execute("INSERT INTO tables VALUES (?)", [table])
+      columns = ActiveRecord::Base.connection.columns(table).map{ |table| table.name }
+      @output.execute("INSERT INTO tables VALUES (?, ?)", [table, columns.to_json])
       @output.execute("CREATE TABLE #{table.underscore} ( data TEXT )")
       for i in 0..pages(table)
         query = Arel::Table.new(table, ActiveRecord::Base)
