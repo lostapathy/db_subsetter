@@ -84,6 +84,16 @@ module DbSubsetter
       raise "ERROR: Too many rows in: #{table} (#{filtered_row_count(table)})" if( filtered_row_count(table) > max_rows )
     end
 
+    def cleanup_types(row)
+      row.map do |field|
+        case field
+        when Date, Time then field.to_s(:db)
+        else
+          field
+        end
+      end
+    end
+
     def export_table(table)
       columns = ActiveRecord::Base.connection.columns(table).map{ |table| table.name }
       @output.execute("INSERT INTO tables VALUES (?, ?)", [table, columns.to_json])
@@ -97,7 +107,7 @@ module DbSubsetter
 
         records = ActiveRecord::Base.connection.select_rows( sql )
         records.each_slice(insert_batch_size) do |rows|
-          @output.execute("INSERT INTO #{table.underscore} (data) VALUES #{ Array.new(rows.size){"(?)"}.join(",")}", rows.map(&:to_json) )
+          @output.execute("INSERT INTO #{table.underscore} (data) VALUES #{ Array.new(rows.size){"(?)"}.join(",")}", rows.map{|x| cleanup_types(x)}.map(&:to_json) )
         end
       end
     end
