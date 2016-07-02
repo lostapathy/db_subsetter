@@ -33,8 +33,10 @@ module DbSubsetter
     end
 
     def export(filename)
-      @output = SQLite3::Database.new(filename)
+      verify_exportability
 
+      @output = SQLite3::Database.new(filename)
+      @output.execute("CREATE TABLE tables (name TEXT)")
       tables.each do |table|
         export_table(table)
       end
@@ -83,9 +85,9 @@ module DbSubsetter
     end
 
     def export_table(table)
-      verify_table_exportability(table)
-
-      @output.execute("create table #{table.underscore} ( data TEXT )")
+      #verify_table_exportability(table)
+      @output.execute("INSERT INTO tables VALUES (?)", [table])
+      @output.execute("CREATE TABLE #{table.underscore} ( data TEXT )")
       for i in 0..pages(table)
         query = Arel::Table.new(table, ActiveRecord::Base)
         # Need to extend this to take more than the first batch_size records
