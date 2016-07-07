@@ -11,7 +11,7 @@ module DbSubsetter
     end
 
     def filter(table, query)
-      filter_method = "filter_#{table}"
+      filter_method = "filter_#{table.downcase}"
       if self.respond_to? filter_method
         self.send(filter_method, query)
       else
