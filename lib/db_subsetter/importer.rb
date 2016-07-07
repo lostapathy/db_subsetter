@@ -3,10 +3,11 @@ require 'sqlite3'
 module DbSubsetter
   class Importer
 
-    def initialize(filename)
+    def initialize(filename, dialect = DbSubsetter::Dialect::Generic)
       raise ArgumentError.new("invalid input file") unless File.exists?(filename)
 
       @data = SQLite3::Database.new(filename)
+      @dialect = dialect
     end
 
     def tables
@@ -18,11 +19,13 @@ module DbSubsetter
     end
 
     def import
-      ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=0;")
-      tables.each do |table|
-        import_table(table)
+      @dialect.import do
+        #ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=0;")
+        tables.each do |table|
+          import_table(table)
+        end
+        #ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=1;")
       end
-      ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=1;")
     end
 
     def insert_batch_size
