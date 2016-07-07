@@ -36,7 +36,7 @@ module DbSubsetter
       verify_exportability
 
       @output = SQLite3::Database.new(filename)
-      @output.execute("CREATE TABLE tables (name TEXT, columns TEXT)")
+      @output.execute("CREATE TABLE tables (name TEXT, records_exported INTEGER, columns TEXT)")
       tables.each do |table|
         export_table(table)
       end
@@ -64,8 +64,8 @@ module DbSubsetter
     end
 
     def filtered_row_count(table)
-      query = Arel::Table.new(table, ActiveRecord::Base).project( Arel.sql("count(1)") )
-      query = filter.filter(table, query)
+      query = Arel::Table.new(table, ActiveRecord::Base)
+      query = filter.filter(table, query).project( Arel.sql("count(1)") )
       ActiveRecord::Base.connection.select_one(query.to_sql).values.first
     end
 
@@ -96,7 +96,7 @@ module DbSubsetter
 
     def export_table(table)
       columns = ActiveRecord::Base.connection.columns(table).map{ |table| table.name }
-      @output.execute("INSERT INTO tables VALUES (?, ?)", [table, columns.to_json])
+      rows_exported = 0
       @output.execute("CREATE TABLE #{table.underscore} ( data TEXT )")
       for i in 0..pages(table)
         query = Arel::Table.new(table, ActiveRecord::Base)
@@ -108,10 +108,11 @@ module DbSubsetter
         records = ActiveRecord::Base.connection.select_rows( sql )
         records.each_slice(insert_batch_size) do |rows|
           @output.execute("INSERT INTO #{table.underscore} (data) VALUES #{ Array.new(rows.size){"(?)"}.join(",")}", rows.map{|x| cleanup_types(x)}.map(&:to_json) )
+          rows_exported += rows.size
         end
       end
+      @output.execute("INSERT INTO tables VALUES (?, ?, ?)", [table, rows_exported, columns.to_json])
     end
-
   end
 end
 

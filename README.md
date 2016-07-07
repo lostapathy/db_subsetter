@@ -43,6 +43,8 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 * Add an executable and/or rake task to perform export and import rather than requiring the API to used directly.  Will need a config file to specific custom plugins
 * Add pre-flight check on import to make sure all tables smell like they will load the data (right columns, at minimum)
 * Finish building and test checks to make sure foreign keys are valid after import
+* Have verify_exportability return all failures together rather than one at a time
+* Add a verbose mode to display more detailed stats while running an export or import (what table we're on, records exported, time taken
 
 ## Contributing
 
