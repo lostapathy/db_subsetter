@@ -3,7 +3,10 @@ module DbSubsetter
     class MSSQL < Generic
       def self.import
         ActiveRecord::Base.connection.execute('EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"')
+        ActiveRecord::Base.connection.execute('EXEC sp_msforeachtable "ALTER TABLE ? DISABLE TRIGGER all"')
+
         yield
+        ActiveRecord::Base.connection.execute('EXEC sp_msforeachtable "ALTER TABLE ? ENABLE TRIGGER all"')
         ActiveRecord::Base.connection.execute('EXEC sp_msforeachtable "ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all"')
       end
 
