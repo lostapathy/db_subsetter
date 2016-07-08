@@ -99,9 +99,10 @@ module DbSubsetter
       rows_exported = 0
       @output.execute("CREATE TABLE #{table.underscore} ( data TEXT )")
       for i in 0..pages(table)
-        query = Arel::Table.new(table, ActiveRecord::Base)
+        arel_table = query = Arel::Table.new(table, ActiveRecord::Base)
+        query = filter.filter(table, query)
         # Need to extend this to take more than the first batch_size records
-        query = query.order(query[order_by(table)]) if order_by(table)
+        query = query.order(arel_table[order_by(table)]) if order_by(table)
 
         sql = query.skip(i * select_batch_size).take(select_batch_size).project( Arel.sql('*') ).to_sql
 
