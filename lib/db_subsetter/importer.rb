@@ -20,11 +20,9 @@ module DbSubsetter
 
     def import
       @dialect.import do
-        #ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=0;")
         tables.each do |table|
           import_table(table)
         end
-        #ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=1;")
       end
     end
 
@@ -34,7 +32,12 @@ module DbSubsetter
 
     private
     def import_table(table)
-      ActiveRecord::Base.connection.truncate(table)
+      begin
+        ActiveRecord::Base.connection.truncate(table)
+      rescue NotImplementedError
+        ActiveRecord::Base.connection.execute("DELETE FROM #{quoted_table_name(table)}")
+      end
+
       all_rows = @data.execute("SELECT data FROM #{table.underscore}")
       all_rows.each_slice(insert_batch_size) do |rows|
         quoted_rows = rows.map{ |row| "(" + quoted_values(row).join(",") + ")" }.join(",")
