@@ -4,6 +4,11 @@ module DbSubsetter
       def self.import
         ActiveRecord::Base.connection.execute('EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"')
         ActiveRecord::Base.connection.execute('EXEC sp_msforeachtable "ALTER TABLE ? DISABLE TRIGGER all"')
+        ActiveRecord::Base.connection.execute("select 'ALTER INDEX ' + I.name + ' ON ' + T.name + ' DISABLE'
+            from sys.indexes I
+            inner join sys.tables T on I.object_id = T.object_id
+            where I.type_desc = 'NONCLUSTERED'
+            and I.name is not null")
 
         yield
         ActiveRecord::Base.connection.execute('EXEC sp_msforeachtable "ALTER TABLE ? ENABLE TRIGGER all"')
