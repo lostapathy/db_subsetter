@@ -27,7 +27,7 @@ module DbSubsetter
     end
 
     def insert_batch_size
-      500
+      100 # more like 500 for mysql
     end
 
     private
@@ -38,12 +38,16 @@ module DbSubsetter
         ActiveRecord::Base.connection.execute("DELETE FROM #{quoted_table_name(table)}")
       end
 
+      ActiveRecord::Base.connection.begin_db_transaction
+
       all_rows = @data.execute("SELECT data FROM #{table.underscore}")
       all_rows.each_slice(insert_batch_size) do |rows|
         quoted_rows = rows.map{ |row| "(" + quoted_values(row).join(",") + ")" }.join(",")
         insert_sql = "INSERT INTO #{quoted_table_name(table)} (#{quoted_column_names(table).join(",")}) VALUES #{quoted_rows}"
         ActiveRecord::Base.connection.execute(insert_sql)
       end
+
+       ActiveRecord::Base.connection.commit_db_transaction
     end
 
     def quoted_values(row)
