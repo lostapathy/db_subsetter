@@ -1,4 +1,5 @@
 require 'sqlite3'
+require 'active_record'
 
 module DbSubsetter
   class Exporter

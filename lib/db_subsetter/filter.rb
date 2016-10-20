@@ -1,3 +1,5 @@
+require 'active_record'
+
 module DbSubsetter
   class Filter
     attr_writer :exporter
