@@ -49,7 +49,13 @@ module DbSubsetter
       end
     end
 
+    def add_scrambler(scrambler)
+      @scramblers << scrambler
+    end
 
+    def initialize
+      @scramblers = []
+    end
 
     private
     def max_unfiltered_rows
@@ -60,6 +66,7 @@ module DbSubsetter
       @max_filtered_rows || 2000
     end
 
+    # this is the batch size we insert into sqlite, which seems to be a reasonable balance of speed and memory usage
     def insert_batch_size
       250
     end
@@ -108,6 +115,13 @@ module DbSubsetter
       end
     end
 
+    def scramble_data(table, data)
+      @scramblers.each do |scrambler|
+        data = scrambler.scramble(table, data)
+      end
+      data
+    end
+
     def export_table(table)
       print "Exporting: #{table} (#{pages(table)} pages)" if @verbose
       $stdout.flush if @verbose
@@ -124,7 +138,7 @@ module DbSubsetter
 
         records = ActiveRecord::Base.connection.select_rows( sql )
         records.each_slice(insert_batch_size) do |rows|
-          @output.execute("INSERT INTO #{table.underscore} (data) VALUES #{ Array.new(rows.size){"(?)"}.join(",")}", rows.map{|x| cleanup_types(x)}.map(&:to_json) )
+          @output.execute("INSERT INTO #{table.underscore} (data) VALUES #{ Array.new(rows.size){"(?)"}.join(",")}", rows.map{|x| scramble_data(table, cleanup_types(x))}.map(&:to_json) )
           rows_exported += rows.size
         end
         print "." if @verbose
