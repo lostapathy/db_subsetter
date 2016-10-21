@@ -3,7 +3,7 @@ require 'active_record'
 
 module DbSubsetter
   class Exporter
-    attr_writer :filter
+    attr_writer :filter, :max_unfiltered_rows, :max_filtered_rows
 
     def all_tables
       ActiveRecord::Base.connection.tables
@@ -27,15 +27,21 @@ module DbSubsetter
       end
     end
 
-    def verify_exportability
-      tables.each do |table|
-        verify_table_exportability(table)
+    def verify_exportability(verbose = true)
+      puts "Verifying table exportability ...\n\n" if verbose
+      errors = tables.map{|x| verify_table_exportability(x) }.flatten.compact
+      if errors.count > 0
+        puts errors.join("\n")
+        raise ArgumentError.new "Some tables are not exportable"
       end
+      puts "\n\n" if verbose
     end
 
-    def export(filename)
-      verify_exportability
+    def export(filename, verbose = true)
+      @verbose = verbose
+      verify_exportability(verbose)
 
+      puts "Exporting data...\n\n" if @verbose
       @output = SQLite3::Database.new(filename)
       @output.execute("CREATE TABLE tables (name TEXT, records_exported INTEGER, columns TEXT)")
       tables.each do |table|
@@ -46,8 +52,12 @@ module DbSubsetter
 
 
     private
-    def max_rows
-      10000000
+    def max_unfiltered_rows
+      @max_unfiltered_rows || 1000
+    end
+
+    def max_filtered_rows
+      @max_filtered_rows || 2000
     end
 
     def insert_batch_size
@@ -81,8 +91,11 @@ module DbSubsetter
     end
 
     def verify_table_exportability(table)
-      raise "ERROR: Multiple pages but no primary key on: #{table}" if pages(table) > 1 && order_by(table).blank?
-      raise "ERROR: Too many rows in: #{table} (#{filtered_row_count(table)})" if( filtered_row_count(table) > max_rows )
+      puts "Verifying: #{table}" if @verbose
+      errors = []
+      errors << "ERROR: Multiple pages but no primary key on: #{table}" if pages(table) > 1 && order_by(table).blank?
+      errors << "ERROR: Too many rows in: #{table} (#{filtered_row_count(table)})" if( filtered_row_count(table) > max_filtered_rows )
+      errors
     end
 
     def cleanup_types(row)
@@ -96,10 +109,12 @@ module DbSubsetter
     end
 
     def export_table(table)
+      print "Exporting: #{table} (#{pages(table)} pages)" if @verbose
+      $stdout.flush if @verbose
       columns = ActiveRecord::Base.connection.columns(table).map{ |table| table.name }
       rows_exported = 0
       @output.execute("CREATE TABLE #{table.underscore} ( data TEXT )")
-      for i in 0..pages(table)
+      for i in 0..(pages(table) - 1)
         arel_table = query = Arel::Table.new(table, ActiveRecord::Base)
         query = filter.filter(table, query)
         # Need to extend this to take more than the first batch_size records
@@ -112,7 +127,10 @@ module DbSubsetter
           @output.execute("INSERT INTO #{table.underscore} (data) VALUES #{ Array.new(rows.size){"(?)"}.join(",")}", rows.map{|x| cleanup_types(x)}.map(&:to_json) )
           rows_exported += rows.size
         end
+        print "." if @verbose
+        $stdout.flush if @verbose
       end
+      puts "" if @verbose
       @output.execute("INSERT INTO tables VALUES (?, ?, ?)", [table, rows_exported, columns.to_json])
     end
   end
