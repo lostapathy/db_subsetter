@@ -55,6 +55,7 @@ module DbSubsetter
 
     def initialize
       @scramblers = []
+      @page_counts = {}
     end
 
     private
@@ -88,7 +89,7 @@ module DbSubsetter
     end
 
     def pages(table)
-      ( filtered_row_count(table) / select_batch_size.to_f ).ceil
+      @page_counts[table] ||= ( filtered_row_count(table) / select_batch_size.to_f ).ceil
     end
 
     def order_by(table)
@@ -134,7 +135,9 @@ module DbSubsetter
         # Need to extend this to take more than the first batch_size records
         query = query.order(arel_table[order_by(table)]) if order_by(table)
 
-        sql = query.skip(i * select_batch_size).take(select_batch_size).project( Arel.sql('*') ).to_sql
+
+        query = query.skip(i * select_batch_size).take(select_batch_size) if pages(table) > 1
+        sql = query.project( Arel.sql('*') ).to_sql
 
         records = ActiveRecord::Base.connection.select_rows( sql )
         records.each_slice(insert_batch_size) do |rows|
