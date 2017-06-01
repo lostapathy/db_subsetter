@@ -1,6 +1,9 @@
 # db_subsetter
 
 [![Build Status](https://travis-ci.org/lostapathy/db_subsetter.svg?branch=master)](https://travis-ci.org/lostapathy/db_subsetter)
+[![Code Climate](https://codeclimate.com/github/lostapathy/db_subsetter/badges/gpa.svg)](https://codeclimate.com/github/lostapathy/db_subsetter)
+[![Test Coverage](https://codeclimate.com/github/lostapathy/db_subsetter/badges/coverage.svg)](https://codeclimate.com/github/lostapathy/db_subsetter/coverage)
+
 
 Extract a subset of a relational database for use in development or testing.  Provides a simple API to filter rows and preserve referential integrity.  The extracted data is packed into a [SQLite](https://www.sqlite.org/) database to allow easy copying.
 

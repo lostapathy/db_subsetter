@@ -1,6 +1,15 @@
 sudo: false
 language: ruby
 rvm:
+  - 2.2.7
   - 2.3.4
   - 2.4.1
-before_install: gem install bundler -v 1.12.3
+  - ruby-head
+  
+
+addons:
+  code_climate:
+    repo_token: 30c89fe1988d654211e1d65cdb44f1dca0f89cea1bfe456ceb1ce67e6daf17b8
+# regular test configuration
+after_success:
+  - bundle exec codeclimate-test-reporter
