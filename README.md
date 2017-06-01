@@ -1,5 +1,7 @@
 # db_subsetter
 
+[![Build Status](https://travis-ci.org/lostapathy/db_subsetter.svg?branch=master)](https://travis-ci.org/lostapathy/db_subsetter)
+
 Extract a subset of a relational database for use in development or testing.  Provides a simple API to filter rows and preserve referential integrity.  The extracted data is packed into a [SQLite](https://www.sqlite.org/) database to allow easy copying.
 
 Developing against a realistic dataset extracted from production provides a lot of advantages over starting with an empty database.  This tools was inspired by [rdbms-subsetter](https://github.com/18F/rdbms-subsetter) and [yaml_db](https://github.com/yamldb/yaml_db/) and combines some of the best attributes of both.
