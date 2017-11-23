@@ -126,7 +126,7 @@ module DbSubsetter
     def export_table(table)
       print "Exporting: #{table} (#{pages(table)} pages)" if @verbose
       $stdout.flush if @verbose
-      columns = ActiveRecord::Base.connection.columns(table).map{ |table| table.name }
+      columns = ActiveRecord::Base.connection.columns(table).map{ |column| column.name }
       rows_exported = 0
       @output.execute("CREATE TABLE #{table.underscore} ( data TEXT )")
       for i in 0..(pages(table) - 1)
