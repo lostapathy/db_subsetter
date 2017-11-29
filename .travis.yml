@@ -18,3 +18,6 @@ addons:
 after_success:
   - bundle exec codeclimate-test-reporter
 
+script:
+  - bundle exec rake test
+  - bundle exec rake rubocop
