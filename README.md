@@ -1,3 +1,4 @@
+<!-- vim: set nofoldenable: -->
 # db_subsetter
 
 [![Build Status](https://travis-ci.org/lostapathy/db_subsetter.svg?branch=master)](https://travis-ci.org/lostapathy/db_subsetter)
@@ -32,7 +33,40 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+db_subsetter is a toolset for creating export/import scripts to export and import your data.  There is no command to run, rather, you build your own scripts.  These instructions give an overview of how to build up a typical configuration to export a subset of data for typical development workflows, but should just be considered a starting point.
+
+### Prerequisites
+
+The examples provided here assume you are using db_subsetter in the context of a Rails app and that ActiveRecord is already configured and "just works."  This is just done for brevity in the example scripts, as db_subsetter absolutely does not require you to use Rails.  Using Rails just makes some operations a little more convenient.  If you aren't a Rails user, you'll need to add code (after the require statements) to connect ActiveRecord, such as:
+
+```ruby
+ActiveRecord::Base.establish_connection(
+  adapter: "mysql2",
+  host: "127.0.0.1",
+  username: "dbuser",
+  database: "huge_db"
+)
+```
+### A Minimal Start
+
+We'll start our example with a minimal export.rb and build up from there.  This
+
+```ruby
+#!/usr/bin/env ruby
+require 'db_subsetter'
+
+exporter = DbSubsetter::Exporter.new
+filename = "project-#{Rails.env}.sqlite3"
+FileUtils.rm(filename) if File.exists?(filename)
+
+exporter.export(filename)
+```
+Time to run it against our db and see what happens!
+
+
+
+
+TODO: These instructions are a work in progress.  More to come!
 
 ## Development
 
