@@ -4,6 +4,7 @@ require 'active_record'
 module DbSubsetter
   class Exporter
     attr_writer :filter, :max_unfiltered_rows, :max_filtered_rows
+    attr_reader :scramblers, :output
 
     def all_tables
       ActiveRecord::Base.connection.tables
@@ -45,7 +46,7 @@ module DbSubsetter
       @output = SQLite3::Database.new(filename)
       @output.execute("CREATE TABLE tables (name TEXT, records_exported INTEGER, columns TEXT)")
       tables.each do |table|
-        export_table(table)
+        table.export(@filter, verbose: @verbose)
       end
     end
 
@@ -58,7 +59,17 @@ module DbSubsetter
       @page_counts = {}
     end
 
+    def select_batch_size
+      insert_batch_size * 20
+    end
+
+    # this is the batch size we insert into sqlite, which seems to be a reasonable balance of speed and memory usage
+    def insert_batch_size
+      250
+    end
+
     private
+
     def max_unfiltered_rows
       @max_unfiltered_rows || 1000
     end
@@ -67,83 +78,18 @@ module DbSubsetter
       @max_filtered_rows || 2000
     end
 
-    # this is the batch size we insert into sqlite, which seems to be a reasonable balance of speed and memory usage
-    def insert_batch_size
-      250
-    end
-
-    def select_batch_size
-      insert_batch_size * 20
-    end
-
     def filter
       @filter ||= Filter.new
       @filter.exporter = self
       @filter
     end
 
-
-    def pages(table)
-      @page_counts[table.name] ||= ( table.filtered_row_count(filter) / select_batch_size.to_f ).ceil
-    end
-
-    def order_by(table)
-      #TODO should probably allow the user to override this and manually set a sort order?
-      key = ActiveRecord::Base.connection.primary_key(table)
-      key || false
-    end
-
     def verify_table_exportability(table)
       puts "Verifying: #{table}" if @verbose
       errors = []
-      errors << "ERROR: Multiple pages but no primary key on: #{table}" if pages(table) > 1 && order_by(table).blank?
+      errors << "ERROR: Multiple pages but no primary key on: #{table}" if table.pages(@filter) > 1 && order_by(table).blank?
       errors << "ERROR: Too many rows in: #{table} (#{table.filtered_row_count(@filter)})" if( table.filtered_row_count(@filter) > max_filtered_rows )
       errors
-    end
-
-    def cleanup_types(row)
-      row.map do |field|
-        case field
-        when Date, Time then field.to_s(:db)
-        else
-          field
-        end
-      end
-    end
-
-    def scramble_data(table, data)
-      @scramblers.each do |scrambler|
-        data = scrambler.scramble(table, data)
-      end
-      data
-    end
-
-    def export_table(table)
-      print "Exporting: #{table} (#{pages(table)} pages)" if @verbose
-      $stdout.flush if @verbose
-      rows_exported = 0
-      @output.execute("CREATE TABLE #{table.name.underscore} ( data TEXT )")
-      for i in 0..(pages(table) - 1)
-        arel_table = query = Arel::Table.new(table)
-        query = filter.filter(table, query)
-        # Need to extend this to take more than the first batch_size records
-        query = query.order(arel_table[order_by(table)]) if order_by(table)
-
-
-        query = query.skip(i * select_batch_size).take(select_batch_size) if pages(table) > 1
-        sql = query.project( Arel.sql('*') ).to_sql
-
-        records = ActiveRecord::Base.connection.select_rows( sql )
-        records.each_slice(insert_batch_size) do |rows|
-          @output.execute("INSERT INTO #{table.name.underscore} (data) VALUES #{ Array.new(rows.size){"(?)"}.join(",")}", rows.map{|x| scramble_data(table, cleanup_types(x))}.map(&:to_json) )
-          rows_exported += rows.size
-        end
-        print "." if @verbose
-        $stdout.flush if @verbose
-      end
-      puts "" if @verbose
-      columns = ActiveRecord::Base.connection.columns(table.name).map{ |column| column.name }
-      @output.execute("INSERT INTO tables VALUES (?, ?, ?)", [table.name, rows_exported, columns.to_json])
     end
   end
 end

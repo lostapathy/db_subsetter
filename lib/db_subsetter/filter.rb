@@ -9,9 +9,10 @@ module DbSubsetter
     end
 
     def tables
+      return @tables if @tables
       table_list = @exporter.all_tables - ActiveRecord::SchemaDumper.ignore_tables - ignore_tables
 
-      table_list.map { |table_name| Table.new(table_name)}
+      @tables = table_list.map { |table_name| Table.new(table_name, exporter: @exporter)}
     end
 
     def filter(table, query)
