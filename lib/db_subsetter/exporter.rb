@@ -46,7 +46,7 @@ module DbSubsetter
       @output = SQLite3::Database.new(filename)
       @output.execute("CREATE TABLE tables (name TEXT, records_exported INTEGER, columns TEXT)")
       tables.each do |table|
-        table.export(@filter, verbose: @verbose)
+        table.export(verbose: @verbose)
       end
     end
 
@@ -68,6 +68,12 @@ module DbSubsetter
       250
     end
 
+    def filter
+      @filter ||= Filter.new
+      @filter.exporter = self
+      @filter
+    end
+
     private
 
     def max_unfiltered_rows
@@ -78,17 +84,11 @@ module DbSubsetter
       @max_filtered_rows || 2000
     end
 
-    def filter
-      @filter ||= Filter.new
-      @filter.exporter = self
-      @filter
-    end
-
     def verify_table_exportability(table)
-      puts "Verifying: #{table}" if @verbose
+      puts "Verifying: #{table.name}" if @verbose
       errors = []
-      errors << "ERROR: Multiple pages but no primary key on: #{table}" if table.pages(@filter) > 1 && order_by(table).blank?
-      errors << "ERROR: Too many rows in: #{table} (#{table.filtered_row_count(@filter)})" if( table.filtered_row_count(@filter) > max_filtered_rows )
+      errors << "ERROR: Multiple pages but no primary key on: #{table}" if table.pages > 1 && order_by(table).blank?
+      errors << "ERROR: Too many rows in: #{table} (#{table.filtered_row_count})" if( table.filtered_row_count > max_filtered_rows )
       errors
     end
   end

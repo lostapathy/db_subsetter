@@ -7,33 +7,33 @@ module DbSubsetter
       @exporter = exporter
     end
 
-    def filtered_row_count(filter)
+    def filtered_row_count
       query = Arel::Table.new(@name)
-      query = filter.filter(self, query)
+      query = @exporter.filter.filter(self, query)
       query = query.project( Arel.sql("count(1)") )
       ActiveRecord::Base.connection.select_one(query.to_sql).values.first
     end
 
-    def pages(filter)
-      @page_count ||= ( filtered_row_count(filter) / @exporter.select_batch_size.to_f ).ceil
+    def pages
+      @page_count ||= ( filtered_row_count / @exporter.select_batch_size.to_f ).ceil
     end
 
 
-    def export(filter, verbose: true)
+    def export(verbose: true)
       if verbose
-        print "Exporting: #{@name} (#{pages(filter)} pages)"
+        print "Exporting: #{@name} (#{pages} pages)"
         $stdout.flush
       end
 
       rows_exported = 0
       @exporter.output.execute("CREATE TABLE #{@name.underscore} ( data TEXT )")
-      for i in 0..(pages(filter) - 1)
+      for i in 0..(pages - 1)
         arel_table = query = Arel::Table.new(@name)
-        query = filter.filter(self, query)
+        query = @exporter.filter.filter(self, query)
         # Need to extend this to take more than the first batch_size records
         query = query.order(arel_table[order_by]) if order_by
 
-        query = query.skip(i * select_batch_size).take(select_batch_size) if pages(filter) > 1
+        query = query.skip(i * select_batch_size).take(select_batch_size) if pages > 1
         sql = query.project( Arel.sql('*') ).to_sql
 
         records = ActiveRecord::Base.connection.select_rows( sql )
@@ -60,11 +60,11 @@ module DbSubsetter
 
     private
 
-    def scramble_data(data)
+    def scramble_data(row)
       @exporter.scramblers.each do |scrambler|
-        data = scrambler.scramble(@name, data)
+        row = scrambler.scramble(@name, row)
       end
-      data
+      row
     end
 
     def cleanup_types(row)
