@@ -1,5 +1,7 @@
 sudo: false
+dist: trusty
 language: ruby
+cache: bundler
 rvm:
   - 2.2.8
   - 2.3.5
@@ -17,6 +19,9 @@ addons:
 # regular test configuration
 after_success:
   - bundle exec codeclimate-test-reporter
+
+services:
+  - mysql
 
 script:
   - bundle exec rake test
