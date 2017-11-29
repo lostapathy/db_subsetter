@@ -7,6 +7,11 @@ module DbSubsetter
       @exporter = exporter
     end
 
+    def total_row_count
+      query = Arel::Table.new(table, ActiveRecord::Base).project("count(1) AS num_rows")
+      ActiveRecord::Base.connection.select_one(query.to_sql)["num_rows"]
+    end
+
     def filtered_row_count
       query = Arel::Table.new(@name)
       query = @exporter.filter.filter(self, query)

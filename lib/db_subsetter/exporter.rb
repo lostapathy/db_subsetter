@@ -16,15 +16,13 @@ module DbSubsetter
 
     def total_row_counts
       tables.each.map do |table|
-        query = Arel::Table.new(table, ActiveRecord::Base).project("count(1) AS num_rows")
-        rows = ActiveRecord::Base.connection.select_one(query.to_sql)["num_rows"]
-        {table => rows}
+        {table => table.total_row_count}
       end
     end
 
     def filtered_row_counts
       tables.each.map do |table|
-        {table => table.filtered_row_count(@filter)}
+        {table => table.filtered_row_count}
       end
     end
 
