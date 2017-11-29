@@ -22,7 +22,7 @@ module DbSubsetter
 
     private
     def column_index(table, column)
-      @column_index_cache["#{table}##{column}"] ||= ActiveRecord::Base.connection.columns(table).map{|table| table.name}.index(column.to_s)
+      @column_index_cache["#{table}##{column}"] ||= ActiveRecord::Base.connection.columns(table).map{|c| c.name}.index(column.to_s)
     end
   end
 end
