@@ -6,12 +6,12 @@ module DbSubsetter
     attr_writer :filter, :max_unfiltered_rows, :max_filtered_rows
     attr_reader :scramblers, :output
 
-    def all_tables
-      ActiveRecord::Base.connection.tables
-    end
-
     def tables
-      filter.tables
+      return @tables if @tables
+      all_tables = ActiveRecord::Base.connection.tables
+      table_list = all_tables - ActiveRecord::SchemaDumper.ignore_tables - @filter.ignore_tables
+
+      @tables = table_list.map { |table_name| Table.new(table_name, exporter: self) }
     end
 
     def total_row_counts
