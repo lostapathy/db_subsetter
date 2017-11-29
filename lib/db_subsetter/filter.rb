@@ -16,7 +16,6 @@ module DbSubsetter
         query
       end
     end
-
   end
 end
 

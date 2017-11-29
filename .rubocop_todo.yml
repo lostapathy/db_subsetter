@@ -6,14 +6,6 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
-# Offense count: 1
-# Cop supports --auto-correct.
-# Configuration parameters: Include, TreatCommentsAsGroupSeparators.
-# Include: **/Gemfile, **/gems.rb
-Bundler/OrderedGems:
-  Exclude:
-    - 'Gemfile'
-
 # Offense count: 3
 # Cop supports --auto-correct.
 # Configuration parameters: Include, TreatCommentsAsGroupSeparators.
@@ -24,30 +16,10 @@ Gemspec/OrderedDependencies:
 
 # Offense count: 1
 # Cop supports --auto-correct.
-Layout/EmptyLineAfterMagicComment:
-  Exclude:
-    - 'db_subsetter.gemspec'
-
-# Offense count: 1
-# Cop supports --auto-correct.
 # Configuration parameters: AllowAdjacentOneLineDefs, NumberOfEmptyLines.
 Layout/EmptyLineBetweenDefs:
   Exclude:
     - 'lib/db_subsetter/table.rb'
-
-# Offense count: 2
-# Cop supports --auto-correct.
-Layout/EmptyLines:
-  Exclude:
-    - 'lib/db_subsetter.rb'
-    - 'lib/db_subsetter/table.rb'
-
-# Offense count: 3
-# Cop supports --auto-correct.
-Layout/EmptyLinesAroundAccessModifier:
-  Exclude:
-    - 'lib/db_subsetter/importer.rb'
-    - 'lib/db_subsetter/scrambler.rb'
 
 # Offense count: 4
 # Cop supports --auto-correct.
@@ -55,9 +27,7 @@ Layout/EmptyLinesAroundAccessModifier:
 # SupportedStyles: empty_lines, empty_lines_except_namespace, empty_lines_special, no_empty_lines
 Layout/EmptyLinesAroundClassBody:
   Exclude:
-    - 'lib/db_subsetter/filter.rb'
     - 'lib/db_subsetter/importer.rb'
-    - 'lib/db_subsetter/table.rb'
 
 # Offense count: 1
 # Cop supports --auto-correct.
@@ -73,14 +43,6 @@ Layout/IndentationConsistency:
   Exclude:
     - 'lib/db_subsetter/importer.rb'
 
-# Offense count: 4
-# Cop supports --auto-correct.
-Layout/LeadingCommentSpace:
-  Exclude:
-    - 'db_subsetter.gemspec'
-    - 'lib/db_subsetter/table.rb'
-    - 'test/db_subsetter_test.rb'
-
 # Offense count: 1
 # Cop supports --auto-correct.
 Layout/SpaceAroundKeyword:
@@ -94,10 +56,7 @@ Layout/SpaceAroundKeyword:
 # SupportedStylesForEmptyBraces: space, no_space
 Layout/SpaceBeforeBlockBraces:
   Exclude:
-    - 'lib/db_subsetter/exporter.rb'
     - 'lib/db_subsetter/importer.rb'
-    - 'lib/db_subsetter/scrambler.rb'
-    - 'lib/db_subsetter/table.rb'
 
 # Offense count: 9
 # Cop supports --auto-correct.
@@ -106,19 +65,7 @@ Layout/SpaceBeforeBlockBraces:
 # SupportedStylesForEmptyBraces: space, no_space
 Layout/SpaceInsideBlockBraces:
   Exclude:
-    - 'lib/db_subsetter/filter.rb'
     - 'lib/db_subsetter/importer.rb'
-    - 'lib/db_subsetter/scrambler.rb'
-    - 'lib/db_subsetter/table.rb'
-
-# Offense count: 4
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles, EnforcedStyleForEmptyBraces, SupportedStylesForEmptyBraces.
-# SupportedStyles: space, no_space, compact
-# SupportedStylesForEmptyBraces: space, no_space
-Layout/SpaceInsideHashLiteralBraces:
-  Exclude:
-    - 'lib/db_subsetter/exporter.rb'
 
 # Offense count: 11
 # Cop supports --auto-correct.
@@ -166,7 +113,7 @@ Metrics/CyclomaticComplexity:
 # Configuration parameters: AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, IgnoredPatterns.
 # URISchemes: http, https
 Metrics/LineLength:
-  Max: 188
+  Max: 194
 
 # Offense count: 2
 # Configuration parameters: CountComments.

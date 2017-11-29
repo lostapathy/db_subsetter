@@ -7,8 +7,3 @@ require "db_subsetter/scrambler"
 require "db_subsetter/dialect/generic"
 require "db_subsetter/dialect/my_sql"
 require "db_subsetter/dialect/ms_sql"
-
-
-module DbSubsetter
-  # Your code goes here...
-end

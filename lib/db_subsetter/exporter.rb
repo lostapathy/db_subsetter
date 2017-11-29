@@ -16,19 +16,19 @@ module DbSubsetter
 
     def total_row_counts
       tables.each.map do |table|
-        {table => table.total_row_count}
+        { table => table.total_row_count }
       end
     end
 
     def filtered_row_counts
       tables.each.map do |table|
-        {table => table.filtered_row_count}
+        { table => table.filtered_row_count }
       end
     end
 
     def verify_exportability(verbose = true)
       puts "Verifying table exportability ...\n\n" if verbose
-      errors = tables.map{ |table| table.can_export? }.flatten.compact
+      errors = tables.map { |table| table.can_export? }.flatten.compact
       if errors.count > 0
         puts errors.join("\n")
         raise ArgumentError.new "Some tables are not exportable"

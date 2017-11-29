@@ -6,6 +6,6 @@ gemspec
 gem "rubocop", ">= 0.49", require: false
 
 group :test do
-  gem "simplecov"
   gem "codeclimate-test-reporter", "~> 1.0.0"
+  gem "simplecov"
 end

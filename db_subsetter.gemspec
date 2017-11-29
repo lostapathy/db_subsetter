@@ -1,4 +1,5 @@
 # coding: utf-8
+
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'db_subsetter/version'
@@ -12,7 +13,7 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{Extract a subset of a relational database for use in development or
                           testing.  Provides a simple API to filter rows and preserve referential
                           integrity.}
-  #spec.description   = %q{TODO: Write a longer description or delete this line.}
+  # spec.description   = %q{TODO: Write a longer description or delete this line.}
   spec.homepage      = "https://github.com/lostapathy/db_subsetter"
   spec.license       = "MIT"
 

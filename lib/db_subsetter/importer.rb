@@ -18,7 +18,8 @@ module DbSubsetter
       all_tables
     end
 
-    def import
+    def import(verbose = true)
+      @verbose = verbose
       @dialect.import do
         tables.each do |table|
           import_table(table)
@@ -31,7 +32,11 @@ module DbSubsetter
     end
 
     private
+
     def import_table(table)
+      started_at = Time.now
+      print "Importing #{table}" if @verbose
+      $stdout.flush if @verbose
       begin
         ActiveRecord::Base.connection.truncate(table)
       rescue NotImplementedError
@@ -45,9 +50,13 @@ module DbSubsetter
         quoted_rows = rows.map{ |row| "(" + quoted_values(row).join(",") + ")" }.join(",")
         insert_sql = "INSERT INTO #{quoted_table_name(table)} (#{quoted_column_names(table).join(",")}) VALUES #{quoted_rows}"
         ActiveRecord::Base.connection.execute(insert_sql)
+        print "." if @verbose
+        $stdout.flush if @verbose
       end
 
        ActiveRecord::Base.connection.commit_db_transaction
+       puts " (#{(Time.now - started_at).round(3)}s)" if @verbose
+
     end
 
     def quoted_values(row)

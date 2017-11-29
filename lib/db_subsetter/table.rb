@@ -23,7 +23,6 @@ module DbSubsetter
       @page_count ||= ( filtered_row_count / @exporter.select_batch_size.to_f ).ceil
     end
 
-
     def export(verbose: true)
       if verbose
         print "Exporting: #{@name} (#{pages} pages)"
@@ -43,7 +42,7 @@ module DbSubsetter
 
         records = ActiveRecord::Base.connection.select_rows( sql )
         records.each_slice(@exporter.insert_batch_size) do |rows|
-          @exporter.output.execute("INSERT INTO #{@name.underscore} (data) VALUES #{ Array.new(rows.size){"(?)"}.join(",")}", rows.map{|x| scramble_data(cleanup_types(x))}.map(&:to_json) )
+          @exporter.output.execute("INSERT INTO #{@name.underscore} (data) VALUES #{ Array.new(rows.size) { "(?)" }.join(",")}", rows.map { |x| scramble_data(cleanup_types(x)) }.map(&:to_json) )
           rows_exported += rows.size
         end
 
@@ -53,12 +52,12 @@ module DbSubsetter
         end
       end
       puts "" if verbose
-      columns = ActiveRecord::Base.connection.columns(@name).map{ |column| column.name }
+      columns = ActiveRecord::Base.connection.columns(@name).map { |column| column.name }
       @exporter.output.execute("INSERT INTO tables VALUES (?, ?, ?)", [@name, rows_exported, columns.to_json])
     end
 
     def order_by
-      #TODO should probably allow the user to override this and manually set a sort order?
+      # TODO should probably allow the user to override this and manually set a sort order?
       key = ActiveRecord::Base.connection.primary_key(@name)
       key || false
     end
@@ -89,6 +88,5 @@ module DbSubsetter
         end
       end
     end
-
   end
 end
