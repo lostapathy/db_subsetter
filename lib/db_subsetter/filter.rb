@@ -9,11 +9,13 @@ module DbSubsetter
     end
 
     def tables
-      @exporter.all_tables - ActiveRecord::SchemaDumper.ignore_tables - ignore_tables
+      table_list = @exporter.all_tables - ActiveRecord::SchemaDumper.ignore_tables - ignore_tables
+
+      table_list.map { |table_name| Table.new(table_name)}
     end
 
     def filter(table, query)
-      filter_method = "filter_#{table.downcase}"
+      filter_method = "filter_#{table.name.downcase}"
       if self.respond_to? filter_method
         self.send(filter_method, query)
       else

@@ -23,13 +23,13 @@ module DbSubsetter
 
     def filtered_row_counts
       tables.each.map do |table|
-        {table => filtered_row_count(table)}
+        {table => table.filtered_row_count(@filter)}
       end
     end
 
     def verify_exportability(verbose = true)
       puts "Verifying table exportability ...\n\n" if verbose
-      errors = tables.map{|x| verify_table_exportability(x) }.flatten.compact
+      errors = tables.map{ |table| verify_table_exportability(table) }.flatten.compact
       if errors.count > 0
         puts errors.join("\n")
         raise ArgumentError.new "Some tables are not exportable"
@@ -82,14 +82,9 @@ module DbSubsetter
       @filter
     end
 
-    def filtered_row_count(table)
-      query = Arel::Table.new(table, ActiveRecord::Base)
-      query = filter.filter(table, query).project( Arel.sql("count(1)") )
-      ActiveRecord::Base.connection.select_one(query.to_sql).values.first
-    end
 
     def pages(table)
-      @page_counts[table] ||= ( filtered_row_count(table) / select_batch_size.to_f ).ceil
+      @page_counts[table.name] ||= ( table.filtered_row_count(filter) / select_batch_size.to_f ).ceil
     end
 
     def order_by(table)
@@ -102,7 +97,7 @@ module DbSubsetter
       puts "Verifying: #{table}" if @verbose
       errors = []
       errors << "ERROR: Multiple pages but no primary key on: #{table}" if pages(table) > 1 && order_by(table).blank?
-      errors << "ERROR: Too many rows in: #{table} (#{filtered_row_count(table)})" if( filtered_row_count(table) > max_filtered_rows )
+      errors << "ERROR: Too many rows in: #{table} (#{table.filtered_row_count(@filter)})" if( table.filtered_row_count(@filter) > max_filtered_rows )
       errors
     end
 
@@ -126,11 +121,10 @@ module DbSubsetter
     def export_table(table)
       print "Exporting: #{table} (#{pages(table)} pages)" if @verbose
       $stdout.flush if @verbose
-      columns = ActiveRecord::Base.connection.columns(table).map{ |table| table.name }
       rows_exported = 0
-      @output.execute("CREATE TABLE #{table.underscore} ( data TEXT )")
+      @output.execute("CREATE TABLE #{table.name.underscore} ( data TEXT )")
       for i in 0..(pages(table) - 1)
-        arel_table = query = Arel::Table.new(table, ActiveRecord::Base)
+        arel_table = query = Arel::Table.new(table)
         query = filter.filter(table, query)
         # Need to extend this to take more than the first batch_size records
         query = query.order(arel_table[order_by(table)]) if order_by(table)
@@ -141,14 +135,15 @@ module DbSubsetter
 
         records = ActiveRecord::Base.connection.select_rows( sql )
         records.each_slice(insert_batch_size) do |rows|
-          @output.execute("INSERT INTO #{table.underscore} (data) VALUES #{ Array.new(rows.size){"(?)"}.join(",")}", rows.map{|x| scramble_data(table, cleanup_types(x))}.map(&:to_json) )
+          @output.execute("INSERT INTO #{table.name.underscore} (data) VALUES #{ Array.new(rows.size){"(?)"}.join(",")}", rows.map{|x| scramble_data(table, cleanup_types(x))}.map(&:to_json) )
           rows_exported += rows.size
         end
         print "." if @verbose
         $stdout.flush if @verbose
       end
       puts "" if @verbose
-      @output.execute("INSERT INTO tables VALUES (?, ?, ?)", [table, rows_exported, columns.to_json])
+      columns = ActiveRecord::Base.connection.columns(table.name).map{ |column| column.name }
+      @output.execute("INSERT INTO tables VALUES (?, ?, ?)", [table.name, rows_exported, columns.to_json])
     end
   end
 end
