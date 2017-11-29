@@ -58,6 +58,14 @@ module DbSubsetter
       key || false
     end
 
+    def can_export?(verbose: true)
+      puts "Verifying: #{@name}" if verbose
+      errors = []
+      errors << "ERROR: Multiple pages but no primary key on: #{@name}" if pages > 1 && order_by.blank?
+      errors << "ERROR: Too many rows in: #{@name} (#{filtered_row_count})" if( filtered_row_count > @exporter.max_filtered_rows )
+      errors
+    end
+
     private
 
     def scramble_data(row)

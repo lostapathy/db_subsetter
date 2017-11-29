@@ -30,7 +30,7 @@ module DbSubsetter
 
     def verify_exportability(verbose = true)
       puts "Verifying table exportability ...\n\n" if verbose
-      errors = tables.map{ |table| verify_table_exportability(table) }.flatten.compact
+      errors = tables.map{ |table| table.can_export? }.flatten.compact
       if errors.count > 0
         puts errors.join("\n")
         raise ArgumentError.new "Some tables are not exportable"
@@ -74,22 +74,12 @@ module DbSubsetter
       @filter
     end
 
-    private
-
     def max_unfiltered_rows
       @max_unfiltered_rows || 1000
     end
 
     def max_filtered_rows
       @max_filtered_rows || 2000
-    end
-
-    def verify_table_exportability(table)
-      puts "Verifying: #{table.name}" if @verbose
-      errors = []
-      errors << "ERROR: Multiple pages but no primary key on: #{table}" if table.pages > 1 && order_by(table).blank?
-      errors << "ERROR: Too many rows in: #{table} (#{table.filtered_row_count})" if( table.filtered_row_count > max_filtered_rows )
-      errors
     end
   end
 end
