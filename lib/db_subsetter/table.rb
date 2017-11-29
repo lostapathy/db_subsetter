@@ -32,16 +32,7 @@ module DbSubsetter
       rows_exported = 0
       @exporter.output.execute("CREATE TABLE #{@name.underscore} ( data TEXT )")
       (0..(pages - 1)).each do |i|
-        arel_table = query = Arel::Table.new(@name)
-        query = @exporter.filter.filter(self, query)
-        # Need to extend this to take more than the first batch_size records
-        query = query.order(arel_table[order_by]) if order_by
-
-        query = query.skip(i * select_batch_size).take(select_batch_size) if pages > 1
-        sql = query.project( Arel.sql('*') ).to_sql
-
-        records = ActiveRecord::Base.connection.select_rows( sql )
-        records.each_slice(@exporter.insert_batch_size) do |rows|
+        records_for_page(i).each_slice(@exporter.insert_batch_size) do |rows|
           @exporter.output.execute("INSERT INTO #{@name.underscore} (data) VALUES #{ Array.new(rows.size) { '(?)' }.join(',')}", rows.map { |x| scramble_data(cleanup_types(x)) }.map(&:to_json) )
           rows_exported += rows.size
         end
@@ -71,6 +62,17 @@ module DbSubsetter
     end
 
     private
+
+    def records_for_page(page)
+      arel_table = query = Arel::Table.new(@name)
+      query = @exporter.filter.filter(self, query)
+      query = query.order(arel_table[order_by]) if order_by
+
+      query = query.skip(page * select_batch_size).take(select_batch_size) if pages > 1
+      sql = query.project( Arel.sql('*') ).to_sql
+
+      ActiveRecord::Base.connection.select_rows(sql)
+    end
 
     def scramble_data(row)
       @exporter.scramblers.each do |scrambler|
