@@ -4,8 +4,8 @@ module DbSubsetter
   class Scrambler
     def scramble(table, row)
       scramble_method = "scramble_#{table.downcase}"
-      if self.respond_to? scramble_method
-        self.send(scramble_method, row)
+      if respond_to? scramble_method
+        send(scramble_method, row)
       else
         row
       end

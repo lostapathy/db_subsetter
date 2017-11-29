@@ -8,14 +8,14 @@ module DbSubsetter
     end
 
     def total_row_count
-      query = Arel::Table.new(table, ActiveRecord::Base).project("count(1) AS num_rows")
-      ActiveRecord::Base.connection.select_one(query.to_sql)["num_rows"]
+      query = Arel::Table.new(table, ActiveRecord::Base).project('count(1) AS num_rows')
+      ActiveRecord::Base.connection.select_one(query.to_sql)['num_rows']
     end
 
     def filtered_row_count
       query = Arel::Table.new(@name)
       query = @exporter.filter.filter(self, query)
-      query = query.project( Arel.sql("count(1)") )
+      query = query.project( Arel.sql('count(1)') )
       ActiveRecord::Base.connection.select_one(query.to_sql).values.first
     end
 
@@ -31,7 +31,7 @@ module DbSubsetter
 
       rows_exported = 0
       @exporter.output.execute("CREATE TABLE #{@name.underscore} ( data TEXT )")
-      for i in 0..(pages - 1)
+      (0..(pages - 1)).each do |i|
         arel_table = query = Arel::Table.new(@name)
         query = @exporter.filter.filter(self, query)
         # Need to extend this to take more than the first batch_size records
@@ -42,7 +42,7 @@ module DbSubsetter
 
         records = ActiveRecord::Base.connection.select_rows( sql )
         records.each_slice(@exporter.insert_batch_size) do |rows|
-          @exporter.output.execute("INSERT INTO #{@name.underscore} (data) VALUES #{ Array.new(rows.size) { "(?)" }.join(",")}", rows.map { |x| scramble_data(cleanup_types(x)) }.map(&:to_json) )
+          @exporter.output.execute("INSERT INTO #{@name.underscore} (data) VALUES #{ Array.new(rows.size) { '(?)' }.join(',')}", rows.map { |x| scramble_data(cleanup_types(x)) }.map(&:to_json) )
           rows_exported += rows.size
         end
 
@@ -51,9 +51,9 @@ module DbSubsetter
           $stdout.flush
         end
       end
-      puts "" if verbose
+      puts '' if verbose
       columns = ActiveRecord::Base.connection.columns(@name).map { |column| column.name }
-      @exporter.output.execute("INSERT INTO tables VALUES (?, ?, ?)", [@name, rows_exported, columns.to_json])
+      @exporter.output.execute('INSERT INTO tables VALUES (?, ?, ?)', [@name, rows_exported, columns.to_json])
     end
 
     def order_by

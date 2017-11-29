@@ -31,7 +31,7 @@ module DbSubsetter
       errors = tables.map { |table| table.can_export? }.flatten.compact
       if errors.count > 0
         puts errors.join("\n")
-        raise ArgumentError.new "Some tables are not exportable"
+        raise ArgumentError.new 'Some tables are not exportable'
       end
       puts "\n\n" if verbose
     end
@@ -42,7 +42,7 @@ module DbSubsetter
 
       puts "Exporting data...\n\n" if @verbose
       @output = SQLite3::Database.new(filename)
-      @output.execute("CREATE TABLE tables (name TEXT, records_exported INTEGER, columns TEXT)")
+      @output.execute 'CREATE TABLE tables (name TEXT, records_exported INTEGER, columns TEXT)'
       tables.each do |table|
         table.export(verbose: @verbose)
       end
