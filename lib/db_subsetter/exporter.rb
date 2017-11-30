@@ -6,6 +6,10 @@ module DbSubsetter
     attr_writer :filter, :max_unfiltered_rows, :max_filtered_rows
     attr_reader :scramblers, :output
 
+    def find_table(name)
+      tables.select { |x| x.name == name }.first
+    end
+
     def tables
       return @tables if @tables
       all_tables = ActiveRecord::Base.connection.tables

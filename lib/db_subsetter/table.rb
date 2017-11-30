@@ -5,18 +5,19 @@ module DbSubsetter
     def initialize(name, exporter: nil)
       @name = name
       @exporter = exporter
+      @loaded_ids = false
     end
 
     def total_row_count
-      query = Arel::Table.new(table, ActiveRecord::Base).project('count(1) AS num_rows')
+      query = Arel::Table.new(@name).project('count(1) AS num_rows')
       ActiveRecord::Base.connection.select_one(query.to_sql)['num_rows']
     end
 
     def filtered_row_count
       query = Arel::Table.new(@name)
       query = @exporter.filter.filter(self, query)
-      query = query.project( Arel.sql('count(1)') )
-      ActiveRecord::Base.connection.select_one(query.to_sql).values.first
+      query = query.project( Arel.sql('count(1) as num_rows') )
+      ActiveRecord::Base.connection.select_one(query.to_sql)['num_rows']
     end
 
     def pages
@@ -47,18 +48,61 @@ module DbSubsetter
       @exporter.output.execute('INSERT INTO tables VALUES (?, ?, ?)', [@name, rows_exported, columns.to_json])
     end
 
-    def order_by
-      # TODO should probably allow the user to override this and manually set a sort order?
-      key = ActiveRecord::Base.connection.primary_key(@name)
-      key || false
+    def primary_key
+      ActiveRecord::Base.connection.primary_key(@name)
     end
 
     def can_export?(verbose: true)
       puts "Verifying: #{@name}" if verbose
+
       errors = []
-      errors << "ERROR: Multiple pages but no primary key on: #{@name}" if pages > 1 && order_by.blank?
-      errors << "ERROR: Too many rows in: #{@name} (#{filtered_row_count})" if( filtered_row_count > @exporter.max_filtered_rows )
+
+      begin
+        puts "  #{filtered_row_count} rows"
+
+        errors << "ERROR: Multiple pages but no primary key on: #{@name}" if pages > 1 && primary_key.blank?
+        errors << "ERROR: Too many rows in: #{@name} (#{filtered_row_count})" if( filtered_row_count > @exporter.max_filtered_rows )
+      rescue CircularRelationError
+        errors << "ERROR: Circular relations through: #{@name}"
+      end
+
       errors
+    end
+
+    def foreign_keys?
+      filterable_relations.count > 0
+    end
+
+    def filterable_relations
+      # FIXME: need to remove those relations we can't filter on - things that don't point to a PK
+      ActiveRecord::Base.connection.foreign_keys(@name).map { |x| Relation.new(x, @exporter) }
+    end
+
+    def filtered_ids
+      return @id_cache if @id_cache
+
+      raise CircularRelationError.new("Circular relations through: #{@name}!") if @loaded_ids
+
+      @loaded_ids = true
+
+      query = Arel::Table.new(@name)
+      sql = @exporter.filter.filter(self, query).project(:id).to_sql
+
+      data = ActiveRecord::Base.connection.select_rows(sql).flatten
+      data << nil
+      @id_cache = data
+    end
+
+    def filter_foreign_keys(query)
+      arel_table = Arel::Table.new(@name)
+      filterable_relations.each do |relation|
+        other_table = relation.to_table
+        key = relation.column.to_sym
+
+        other_ids = other_table.filtered_ids
+        query = query.where(arel_table[key].in(other_ids).or(arel_table[key].eq(nil)))
+      end
+      query
     end
 
     private
@@ -66,7 +110,7 @@ module DbSubsetter
     def records_for_page(page)
       arel_table = query = Arel::Table.new(@name)
       query = @exporter.filter.filter(self, query)
-      query = query.order(arel_table[order_by]) if order_by
+      query = query.order(arel_table[primary_key]) if primary_key
 
       query = query.skip(page * select_batch_size).take(select_batch_size) if pages > 1
       sql = query.project( Arel.sql('*') ).to_sql
