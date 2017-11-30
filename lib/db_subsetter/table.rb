@@ -58,8 +58,6 @@ module DbSubsetter
       errors = []
 
       begin
-        puts "  #{filtered_row_count} rows"
-
         errors << "ERROR: Multiple pages but no primary key on: #{@name}" if pages > 1 && primary_key.blank?
         errors << "ERROR: Too many rows in: #{@name} (#{filtered_row_count})" if( filtered_row_count > @exporter.max_filtered_rows )
       rescue CircularRelationError
@@ -94,7 +92,6 @@ module DbSubsetter
     end
 
     def filter_foreign_keys(query)
-      arel_table = Arel::Table.new(@name)
       filterable_relations.each do |relation|
         other_table = relation.to_table
         key = relation.column.to_sym
@@ -108,8 +105,7 @@ module DbSubsetter
     private
 
     def records_for_page(page)
-      arel_table = query = Arel::Table.new(@name)
-      query = @exporter.filter.filter(self, query)
+      query = @exporter.filter.filter(self, arel_table)
       query = query.order(arel_table[primary_key]) if primary_key
 
       query = query.skip(page * select_batch_size).take(select_batch_size) if pages > 1
@@ -133,6 +129,10 @@ module DbSubsetter
           field
         end
       end
+    end
+
+    def arel_table
+      @arel_table ||= Arel::Table.new(@name)
     end
   end
 end
