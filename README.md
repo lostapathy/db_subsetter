@@ -2,7 +2,7 @@
 # db_subsetter
 
 [![Build Status](https://travis-ci.org/lostapathy/db_subsetter.svg?branch=master)](https://travis-ci.org/lostapathy/db_subsetter)
-[![Code Climate](https://codeclimate.com/github/lostapathy/db_subsetter/badges/gpa.svg)](https://codeclimate.com/github/lostapathy/db_subsetter)
+[![Maintainability](https://api.codeclimate.com/v1/badges/26b61bf940b79bbfa529/maintainability)](https://codeclimate.com/github/lostapathy/db_subsetter/maintainability)
 [![Test Coverage](https://codeclimate.com/github/lostapathy/db_subsetter/badges/coverage.svg)](https://codeclimate.com/github/lostapathy/db_subsetter/coverage)
 
 ![db_subsetter logo](/logo/db_subsetter_logo.png?raw=true "db_subsetter logo")
