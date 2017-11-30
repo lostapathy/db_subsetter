@@ -5,6 +5,7 @@
 [![Code Climate](https://codeclimate.com/github/lostapathy/db_subsetter/badges/gpa.svg)](https://codeclimate.com/github/lostapathy/db_subsetter)
 [![Test Coverage](https://codeclimate.com/github/lostapathy/db_subsetter/badges/coverage.svg)](https://codeclimate.com/github/lostapathy/db_subsetter/coverage)
 
+![db_subsetter logo](/logo/db_subsetter_logo.png?raw=true "db_subsetter logo")
 
 Extract a subset of a relational database for use in development or testing.  Provides a simple API to filter rows and preserve referential integrity.  The extracted data is packed into a [SQLite](https://www.sqlite.org/) database to allow easy copying.
 
@@ -93,7 +94,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 * Improve the dialect handling
 * Better example docs on usage and filtering examples
 * Implement a scrubber API to allow sanitizing or correcting data at export time.  This allows us to keep sensitive/personal data out of the export and also allows correction of broken data that won't re-insert.
-* Add an executable and/or rake task to perform export and import rather than requiring the API to used directly.  Will need a config file to specify custom plugins
+* Add an executable and/or rake task to perform export and import rather than requiring the API to used directly.  Will need a config file to specific custom plugins
 * Add pre-flight check on import to make sure all tables smell like they will load the data (right columns, at minimum)
 * Finish building and test checks to make sure foreign keys are valid after import
 * Add a verbose mode to display more detailed stats while running an export or import (what table we're on, records exported, time taken
