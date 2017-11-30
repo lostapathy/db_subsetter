@@ -14,6 +14,20 @@ When working against a legacy database, automatic relationship management does n
 
 ActiveRecord is used for database access, however you *do not* need to have ActiveRecord models for all tables you wish to subset.  Any database supported by ActiveRecord should work.  In theory, you should be able to subset from database and import into another (i.e., MySQL -> Postgres), however in practice this may or may not work well depending on exactly what data types are used.
 
+## RDBMS Support
+
+db_subsetter requires a small RDBMS-specific adapter in order to deal with a few things during the export/import process, mainly related to foreign keys.  At present, the following dialects are supported.  Writing others is pretty straightforward, PRs welcome.
+
+* MySQL
+* MS SQL
+
+
+## Limitations
+
+Over time we hope to remove some of these limitations.  Until then, tables affected by these limitations can either be skipped or processed manually.
+
+* Tables to be exported must have a single-column primary key unless they have less than SELECT_BATCH_SIZE (5000) rows
+* Foreign keys that do not point back to a primary key are not automatically filtered on
 
 ## Installation
 
