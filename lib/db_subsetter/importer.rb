@@ -1,6 +1,7 @@
 require 'sqlite3'
 
 module DbSubsetter
+  # Manages importing a subset of data
   class Importer
     def initialize(filename, dialect = DbSubsetter::Dialect::Generic)
       raise ArgumentError, 'invalid input file' unless File.exist?(filename)

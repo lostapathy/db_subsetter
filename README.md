@@ -22,6 +22,7 @@ db_subsetter requires a small RDBMS-specific adapter in order to deal with a few
 * MySQL
 * MS SQL
 * Postgres
+* Sqlite
 
 ## Limitations
 
@@ -89,8 +90,15 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
+## Roadmap
+
+* 0.4.x (released) - fully functional, requires manual filtering of all tables
+* 0.5.x (December 2017) - automating filtering of tables by foreign keys, requires much less configuration but will have small breaking API changes
+* 0.6.x (TBA) - improve/expand the scrambler API to allow much simpler filtering of tables, breaking changes to scrambler API likely
+
 ## TODO
 
+* Tests!
 * Improve the dialect handling
 * Better example docs on usage and filtering examples
 * Implement a scrubber API to allow sanitizing or correcting data at export time.  This allows us to keep sensitive/personal data out of the export and also allows correction of broken data that won't re-insert.

@@ -1,4 +1,5 @@
 module DbSubsetter
+  # A database in the database to be subset or imported
   class Table
     attr_accessor :name
 

@@ -1,6 +1,7 @@
 require 'random-word'
 
 module DbSubsetter
+  # Clean or redact data to be exported
   class Scrambler
     def scramble(table, row)
       scramble_method = "scramble_#{table.downcase}"

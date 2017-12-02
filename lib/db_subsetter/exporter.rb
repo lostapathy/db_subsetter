@@ -2,6 +2,7 @@ require 'sqlite3'
 require 'active_record'
 
 module DbSubsetter
+  # Manages exporting a subset of data
   class Exporter
     attr_writer :max_unfiltered_rows, :max_filtered_rows
     attr_reader :scramblers, :output, :database

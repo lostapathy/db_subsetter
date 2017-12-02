@@ -1,5 +1,6 @@
 module DbSubsetter
   module Dialect
+    # Dialect to subset to/from Microsoft SQL Server
     class MSSQL < Generic
       def self.import
         ActiveRecord::Base.connection.execute('EXEC sp_msforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"')
