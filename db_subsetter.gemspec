@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Joe Francis']
   spec.email         = ['joe@lostapathy.com']
 
-  spec.summary       = %q{Extract a subset of a relational database for use in development or
+  spec.summary       = %q(Extract a subset of a relational database for use in development or
                           testing.  Provides a simple API to filter rows and preserve referential
-                          integrity.}
+                          integrity.)
   # spec.description   = %q{TODO: Write a longer description or delete this line.}
   spec.homepage      = 'https://github.com/lostapathy/db_subsetter'
   spec.license       = 'MIT'

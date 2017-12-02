@@ -5,27 +5,30 @@ module DbSubsetter
 
     def initialize(ar_association, database)
       @column = ar_association.column
+      @other_column = ar_association.primary_key
       @to_table = database.find_table ar_association.to_table
       @from_table = database.find_table ar_association.from_table
     end
 
+    # We cannot subset automatically if the relation points to a non-primary key
     def can_subset_from?
-      # FIXME: make this reject keys that don't point back at primary key
-      true
+      @to_table.primary_key == @other_column
     end
 
     def apply_subset(query)
-      # FIXME: if a relation points back to an ignored table, make sure that key is nil
-      # to preserve referential integrity.  Potentially provide option to not filter, but
-      # nil out that key?
       return query if !can_subset_from? || @to_table.full_table?
 
-      # FIXME: if a related table will be exported in full, don't bother subsetting on that key
+      # If the other table is ignored, we must not include any records that reference it
+      query = query.where(arel_table[@column].neq(nil)) if @to_table.ignored?
 
-      other_ids = @to_table.filtered_ids
-      arel_table = @from_table.arel_table
-      conditions = arel_table[@column].in(other_ids).or(arel_table[@column].eq(nil))
-      query.where(conditions)
+      # If a related table will be exported in full, don't bother subsetting on that key
+      unless @to_table.full_table?
+        other_ids = @to_table.filtered_ids
+        arel_table = @from_table.arel_table
+        conditions = arel_table[@column].in(other_ids).or(arel_table[@column].eq(nil))
+        query = query.where(conditions)
+      end
+      query
     end
   end
 end

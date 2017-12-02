@@ -3,15 +3,16 @@ module DbSubsetter
   class Database
     def initialize(exporter)
       @exporter = exporter
+      @tables = {}
+      all_table_names.each { |table_name| @tables[table_name] = Table.new(table_name, self, @exporter) }
     end
 
     def find_table(name)
-      # FIXME: store table list as a hash internally to speed this up
-      tables.select { |x| x.name == name }.first
+      @tables[name]
     end
 
     def tables
-      @tables ||= all_table_names.map { |table_name| Table.new(table_name, self, @exporter) }
+      @tables.values
     end
 
     def exported_tables
@@ -29,7 +30,6 @@ module DbSubsetter
     end
 
     # Used in debugging/reporting
-    # FIXME: should probably omit tables that are not exported
     def filtered_row_counts
       tables.map { |table| { table.name => table.filtered_row_count } }
     end

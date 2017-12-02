@@ -37,12 +37,7 @@ module DbSubsetter
       $stdout.sync
       started_at = Time.now
       print "Importing #{table}" if @verbose
-      # FIXME: this could move into the dialect
-      begin
-        ActiveRecord::Base.connection.truncate(table)
-      rescue NotImplementedError
-        ActiveRecord::Base.connection.execute("DELETE FROM #{quoted_table_name(table)}")
-      end
+      @dialect.truncate_table(table)
 
       ActiveRecord::Base.connection.begin_db_transaction
 

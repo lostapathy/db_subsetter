@@ -44,7 +44,7 @@ module DbSubsetter
       @exporter.output.execute("CREATE TABLE #{@name.underscore} ( data TEXT )")
       0.upto(pages - 1).each do |page|
         records_for_page(page).each_slice(Exporter::INSERT_BATCH_SIZE) do |rows|
-          data = rows.map { |x| scramble_data(cleanup_types(x)) }.map(&:to_json)
+          data = rows.map { |x| @exporter.sanitize_row(@name, x) }.map(&:to_json)
 
           @exporter.output.execute("INSERT INTO #{@name.underscore} (data) VALUES #{Array.new(rows.size) { '(?)' }.join(',')}", data)
           rows_exported += rows.size
@@ -83,14 +83,14 @@ module DbSubsetter
       @arel_table ||= Arel::Table.new(@name)
     end
 
+    def primary_key
+      ActiveRecord::Base.connection.primary_key(@name)
+    end
+
     private
 
     def relations
       ActiveRecord::Base.connection.foreign_keys(@name).map { |x| Relation.new(x, @database) }
-    end
-
-    def primary_key
-      ActiveRecord::Base.connection.primary_key(@name)
     end
 
     def filtered_records
@@ -116,22 +116,6 @@ module DbSubsetter
       query = query.skip(page * Exporter::SELECT_BATCH_SIZE).take(Exporter::SELECT_BATCH_SIZE) if pages > 1
       sql = query.project(Arel.sql('*')).to_sql
       ActiveRecord::Base.connection.select_rows(sql)
-    end
-
-    # FIXME: this logic doesn't belong here
-    def scramble_data(row)
-      @exporter.scramble_row(@name, row)
-    end
-
-    # FIXME: this method doesn't belong here
-    def cleanup_types(row)
-      row.map do |field|
-        case field
-        when Date, Time then field.to_s(:db)
-        else
-          field
-        end
-      end
     end
 
     def pages

@@ -63,11 +63,28 @@ module DbSubsetter
     end
 
     # FIXME: look at this API, passing a table name back seems wrong
+    def sanitize_row(table_name, row)
+      row = cleanup_types(row)
+      scramble_row(table_name, row)
+    end
+
+    private
+
     def scramble_row(table_name, row)
       scramblers.each do |scrambler|
         row = scrambler.scramble(table_name, row)
       end
       row
+    end
+
+    def cleanup_types(row)
+      row.map do |field|
+        case field
+        when Date, Time then field.to_s(:db)
+        else
+          field
+        end
+      end
     end
   end
 end
