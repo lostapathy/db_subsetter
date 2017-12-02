@@ -21,7 +21,7 @@ db_subsetter requires a small RDBMS-specific adapter in order to deal with a few
 
 * MySQL
 * MS SQL
-
+* Postgres
 
 ## Limitations
 
@@ -97,7 +97,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 * Add an executable and/or rake task to perform export and import rather than requiring the API to used directly.  Will need a config file to specific custom plugins
 * Add pre-flight check on import to make sure all tables smell like they will load the data (right columns, at minimum)
 * Finish building and test checks to make sure foreign keys are valid after import
-* Add a verbose mode to display more detailed stats while running an export or import (what table we're on, records exported, time taken
+* Add a verbose mode to display more detailed stats while running an export or import (what table we're on, records exported, time taken)
 
 ## Contributing
 
