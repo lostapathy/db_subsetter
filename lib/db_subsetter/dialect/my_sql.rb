@@ -8,7 +8,7 @@ module DbSubsetter
       end
 
       def self.integrity_problems
-        raise NotImplementedError.new('integrity_problems not implemented for MySQL')
+        raise NotImplementedError, 'integrity_problems not implemented for MySQL'
       end
     end
   end

@@ -2,9 +2,8 @@ require 'sqlite3'
 
 module DbSubsetter
   class Importer
-
     def initialize(filename, dialect = DbSubsetter::Dialect::Generic)
-      raise ArgumentError.new('invalid input file') unless File.exists?(filename)
+      raise ArgumentError, 'invalid input file' unless File.exist?(filename)
 
       @data = SQLite3::Database.new(filename)
       @dialect = dialect
@@ -34,9 +33,10 @@ module DbSubsetter
     private
 
     def import_table(table)
+      $stdout.sync
       started_at = Time.now
       print "Importing #{table}" if @verbose
-      $stdout.flush if @verbose
+      # FIXME: this could move into the dialect
       begin
         ActiveRecord::Base.connection.truncate(table)
       rescue NotImplementedError
@@ -51,18 +51,16 @@ module DbSubsetter
         insert_sql = "INSERT INTO #{quoted_table_name(table)} (#{quoted_column_names(table).join(',')}) VALUES #{quoted_rows}"
         ActiveRecord::Base.connection.execute(insert_sql)
         print '.' if @verbose
-        $stdout.flush if @verbose
       end
 
-       ActiveRecord::Base.connection.commit_db_transaction
-       puts " (#{(Time.now - started_at).round(3)}s)" if @verbose
-
+      ActiveRecord::Base.connection.commit_db_transaction
+      puts " (#{(Time.now - started_at).round(3)}s)" if @verbose
     end
 
     def quoted_values(row)
       out = JSON.parse(row[0])
-      out = out.map{|x| ActiveRecord::Base.connection.type_cast(x, nil) }
-      out = out.map{|x| ActiveRecord::Base.connection.quote(x) }
+      out = out.map { |x| ActiveRecord::Base.connection.type_cast(x, nil) }
+      out = out.map { |x| ActiveRecord::Base.connection.quote(x) }
       out
     end
 
@@ -78,6 +76,5 @@ module DbSubsetter
     def quoted_column_names(table)
       columns(table).map { |column| ActiveRecord::Base.connection.quote_column_name(column) }
     end
-
   end
 end

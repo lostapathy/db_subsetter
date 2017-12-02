@@ -13,10 +13,10 @@ module DbSubsetter
 
     def verify_exportability(verbose = true)
       puts "Verifying table exportability ...\n\n" if verbose
-      errors = @database.exported_tables.map { |table| table.can_export? }.flatten.compact
+      errors = @database.exported_tables.map(&:exportable?).flatten.compact
       if errors.count > 0
         puts errors.join("\n")
-        raise ArgumentError.new 'Some tables are not exportable'
+        raise ArgumentError, 'Some tables are not exportable'
       end
       puts "\n\n" if verbose
     end
@@ -43,19 +43,30 @@ module DbSubsetter
       end
     end
 
+    def full_tables(full_tables)
+      full_tables.each do |t|
+        @database.find_table(t).full_table!
+      end
+    end
+
     def initialize
       @scramblers = []
       @page_counts = {}
       @database = Database.new(self)
       @filter = Filter.new
-    end
-
-    def max_unfiltered_rows
-      @max_unfiltered_rows || 1000
+      $stdout.sync
     end
 
     def max_filtered_rows
       @max_filtered_rows || 2000
+    end
+
+    # FIXME: look at this API, passing a table name back seems wrong
+    def scramble_row(table_name, row)
+      scramblers.each do |scrambler|
+        row = scrambler.scramble(table_name, row)
+      end
+      row
     end
   end
 end
