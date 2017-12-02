@@ -2,10 +2,11 @@ module DbSubsetter
   class Table
     attr_accessor :name
 
-    def initialize(name, exporter: nil)
+    def initialize(name, database, exporter)
       @name = name
       @exporter = exporter
       @loaded_ids = false
+      @database = database
     end
 
     def total_row_count
@@ -21,7 +22,7 @@ module DbSubsetter
     end
 
     def pages
-      @page_count ||= ( filtered_row_count / @exporter.select_batch_size.to_f ).ceil
+      @page_count ||= ( filtered_row_count / Exporter::SELECT_BATCH_SIZE.to_f ).ceil
     end
 
     def export(verbose: true)
@@ -33,7 +34,7 @@ module DbSubsetter
       rows_exported = 0
       @exporter.output.execute("CREATE TABLE #{@name.underscore} ( data TEXT )")
       (0..(pages - 1)).each do |i|
-        records_for_page(i).each_slice(@exporter.insert_batch_size) do |rows|
+        records_for_page(i).each_slice(Exporter::INSERT_BATCH_SIZE) do |rows|
           @exporter.output.execute("INSERT INTO #{@name.underscore} (data) VALUES #{ Array.new(rows.size) { '(?)' }.join(',')}", rows.map { |x| scramble_data(cleanup_types(x)) }.map(&:to_json) )
           rows_exported += rows.size
         end
@@ -67,13 +68,9 @@ module DbSubsetter
       errors
     end
 
-    def foreign_keys?
-      filterable_relations.count > 0
-    end
-
     def filterable_relations
       # FIXME: need to remove those relations we can't filter on - things that don't point to a PK
-      ActiveRecord::Base.connection.foreign_keys(@name).map { |x| Relation.new(x, @exporter) }
+      ActiveRecord::Base.connection.foreign_keys(@name).map { |x| Relation.new(x, @database) }
     end
 
     def filtered_ids
@@ -108,7 +105,7 @@ module DbSubsetter
       query = @exporter.filter.filter(self, arel_table)
       query = query.order(arel_table[primary_key]) if primary_key
 
-      query = query.skip(page * select_batch_size).take(select_batch_size) if pages > 1
+      query = query.skip(page * Exporter::SELECT_BATCH_SIZE).take(Exporter::SELECT_BATCH_SIZE) if pages > 1
       sql = query.project( Arel.sql('*') ).to_sql
 
       ActiveRecord::Base.connection.select_rows(sql)

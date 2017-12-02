@@ -1,6 +1,7 @@
 require 'db_subsetter/version'
 require 'db_subsetter/circular_relation_error'
 require 'db_subsetter/filter'
+require 'db_subsetter/database'
 require 'db_subsetter/table'
 require 'db_subsetter/exporter'
 require 'db_subsetter/importer'
