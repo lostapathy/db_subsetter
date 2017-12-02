@@ -10,14 +10,12 @@ module DbSubsetter
     end
 
     def total_row_count
-      query = Arel::Table.new(@name).project('count(1) AS num_rows')
+      query = arel_table.project('count(1) AS num_rows')
       ActiveRecord::Base.connection.select_one(query.to_sql)['num_rows']
     end
 
     def filtered_row_count
-      query = Arel::Table.new(@name)
-      query = @exporter.filter.filter(self, query)
-      query = query.project( Arel.sql('count(1) as num_rows') )
+      query = filtered_records.project( Arel.sql('count(1) AS num_rows') )
       ActiveRecord::Base.connection.select_one(query.to_sql)['num_rows']
     end
 
@@ -54,22 +52,19 @@ module DbSubsetter
     end
 
     def can_export?(verbose: true)
-      puts "Verifying: #{@name}" if verbose
+      puts "Verifying: #{@name} (#{filtered_row_count}/#{total_row_count})" if verbose
 
       errors = []
-
       begin
         errors << "ERROR: Multiple pages but no primary key on: #{@name}" if pages > 1 && primary_key.blank?
         errors << "ERROR: Too many rows in: #{@name} (#{filtered_row_count})" if( filtered_row_count > @exporter.max_filtered_rows )
       rescue CircularRelationError
         errors << "ERROR: Circular relations through: #{@name}"
       end
-
       errors
     end
 
-    def filterable_relations
-      # FIXME: need to remove those relations we can't filter on - things that don't point to a PK
+    def relations
       ActiveRecord::Base.connection.foreign_keys(@name).map { |x| Relation.new(x, @database) }
     end
 
@@ -80,8 +75,7 @@ module DbSubsetter
 
       @loaded_ids = true
 
-      query = Arel::Table.new(@name)
-      sql = @exporter.filter.filter(self, query).project(:id).to_sql
+      sql = filtered_records.project(:id).to_sql
 
       data = ActiveRecord::Base.connection.select_rows(sql).flatten
       data << nil
@@ -89,7 +83,8 @@ module DbSubsetter
     end
 
     def filter_foreign_keys(query)
-      filterable_relations.each do |relation|
+      relations.each do |relation|
+        next unless relation.can_subset_from?
         other_table = relation.to_table
         key = relation.column.to_sym
 
@@ -101,8 +96,12 @@ module DbSubsetter
 
     private
 
+    def filtered_records
+      @exporter.filter.filter(self, arel_table)
+    end
+
     def records_for_page(page)
-      query = @exporter.filter.filter(self, arel_table)
+      query = filtered_records
       query = query.order(arel_table[primary_key]) if primary_key
 
       query = query.skip(page * Exporter::SELECT_BATCH_SIZE).take(Exporter::SELECT_BATCH_SIZE) if pages > 1

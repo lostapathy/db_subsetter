@@ -2,8 +2,6 @@ require 'active_record'
 
 module DbSubsetter
   class Filter
-    attr_writer :exporter
-
     def ignore_tables
       []
     end

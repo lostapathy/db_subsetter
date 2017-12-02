@@ -3,24 +3,13 @@ require 'active_record'
 
 module DbSubsetter
   class Exporter
-    attr_writer :filter, :max_unfiltered_rows, :max_filtered_rows
-    attr_reader :scramblers, :output
+    attr_writer :max_unfiltered_rows, :max_filtered_rows
+    attr_reader :scramblers, :output, :database
+    attr_accessor :filter
 
     # this is the batch size we insert into sqlite, which seems to be a reasonable balance of speed and memory usage
     INSERT_BATCH_SIZE = 250
     SELECT_BATCH_SIZE = 5000
-
-    def total_row_counts
-      @database.tables.each.map do |table|
-        { table => table.total_row_count }
-      end
-    end
-
-    def filtered_row_counts
-      @database.tables.each.map do |table|
-        { table => table.filtered_row_count }
-      end
-    end
 
     def verify_exportability(verbose = true)
       puts "Verifying table exportability ...\n\n" if verbose
@@ -52,12 +41,7 @@ module DbSubsetter
       @scramblers = []
       @page_counts = {}
       @database = Database.new(self)
-    end
-
-    def filter
-      @filter ||= Filter.new
-      @filter.exporter = self
-      @filter
+      @filter = Filter.new
     end
 
     def max_unfiltered_rows
@@ -69,4 +53,3 @@ module DbSubsetter
     end
   end
 end
-

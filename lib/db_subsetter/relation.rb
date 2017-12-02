@@ -7,5 +7,9 @@ module DbSubsetter
       @column = ar_association.column
       @to_table = database.find_table ar_association.to_table
     end
+
+    def can_subset_from?
+      true
+    end
   end
 end

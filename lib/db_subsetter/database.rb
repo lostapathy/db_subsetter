@@ -6,15 +6,31 @@ module DbSubsetter
     end
 
     def find_table(name)
+      # FIXME: store table list as a hash internally to speed this up
       tables.select { |x| x.name == name }.first
     end
 
     def tables
       return @tables if @tables
-      all_tables = ActiveRecord::Base.connection.tables
-      table_list = all_tables - ActiveRecord::SchemaDumper.ignore_tables - @exporter.filter.ignore_tables
+      table_list = all_table_names - @exporter.filter.ignore_tables
 
       @tables = table_list.map { |table_name| Table.new(table_name, self, @exporter) }
+    end
+
+    # Raw list of names of all tables in the database.
+    def all_table_names
+      @all_table_names ||= ActiveRecord::Base.connection.tables
+    end
+
+    # Used in debugging/reporting
+    def total_row_counts
+      tables.map { |table| { table.name => table.total_row_count } }
+    end
+
+    # Used in debugging/reporting
+    # FIXME: should probably omit tables that are not exported
+    def filtered_row_counts
+      tables.map { |table| { table.name => table.filtered_row_count } }
     end
   end
 end
