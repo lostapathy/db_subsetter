@@ -11,10 +11,11 @@ module DbSubsetter
     end
 
     def tables
-      return @tables if @tables
-      table_list = all_table_names - @exporter.filter.ignore_tables
+      @tables ||= all_table_names.map { |table_name| Table.new(table_name, self, @exporter) }
+    end
 
-      @tables = table_list.map { |table_name| Table.new(table_name, self, @exporter) }
+    def exported_tables
+      tables.reject(&:ignored?)
     end
 
     # Raw list of names of all tables in the database.

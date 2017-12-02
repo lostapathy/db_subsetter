@@ -13,7 +13,7 @@ module DbSubsetter
 
     def verify_exportability(verbose = true)
       puts "Verifying table exportability ...\n\n" if verbose
-      errors = @database.tables.map { |table| table.can_export? }.flatten.compact
+      errors = @database.exported_tables.map { |table| table.can_export? }.flatten.compact
       if errors.count > 0
         puts errors.join("\n")
         raise ArgumentError.new 'Some tables are not exportable'
@@ -28,13 +28,19 @@ module DbSubsetter
       puts "Exporting data...\n\n" if @verbose
       @output = SQLite3::Database.new(filename)
       @output.execute 'CREATE TABLE tables (name TEXT, records_exported INTEGER, columns TEXT)'
-      @database.tables.each do |table|
+      @database.exported_tables.each do |table|
         table.export(verbose: @verbose)
       end
     end
 
     def add_scrambler(scrambler)
       @scramblers << scrambler
+    end
+
+    def ignore_tables(ignored)
+      ignored.each do |t|
+        @database.find_table(t).ignore!
+      end
     end
 
     def initialize

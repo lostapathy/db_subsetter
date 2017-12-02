@@ -4,7 +4,7 @@ module DbSubsetter
   class Importer
 
     def initialize(filename, dialect = DbSubsetter::Dialect::Generic)
-      raise ArgumentError.new("invalid input file") unless File.exists?(filename)
+      raise ArgumentError.new('invalid input file') unless File.exists?(filename)
 
       @data = SQLite3::Database.new(filename)
       @dialect = dialect
@@ -12,7 +12,7 @@ module DbSubsetter
 
     def tables
       all_tables = []
-      @data.execute("SELECT name FROM tables") do |row|
+      @data.execute('SELECT name FROM tables') do |row|
         all_tables << row[0]
       end
       all_tables
@@ -47,10 +47,10 @@ module DbSubsetter
 
       all_rows = @data.execute("SELECT data FROM #{table.underscore}")
       all_rows.each_slice(insert_batch_size) do |rows|
-        quoted_rows = rows.map{ |row| "(" + quoted_values(row).join(",") + ")" }.join(",")
-        insert_sql = "INSERT INTO #{quoted_table_name(table)} (#{quoted_column_names(table).join(",")}) VALUES #{quoted_rows}"
+        quoted_rows = rows.map { |row| '(' + quoted_values(row).join(',') + ')' }.join(',')
+        insert_sql = "INSERT INTO #{quoted_table_name(table)} (#{quoted_column_names(table).join(',')}) VALUES #{quoted_rows}"
         ActiveRecord::Base.connection.execute(insert_sql)
-        print "." if @verbose
+        print '.' if @verbose
         $stdout.flush if @verbose
       end
 
@@ -67,7 +67,7 @@ module DbSubsetter
     end
 
     def columns(table)
-      raw = @data.execute("SELECT columns FROM tables WHERE name = ?", [table]).first[0]
+      raw = @data.execute('SELECT columns FROM tables WHERE name = ?', [table]).first[0]
       JSON.parse(raw)
     end
 
@@ -76,9 +76,8 @@ module DbSubsetter
     end
 
     def quoted_column_names(table)
-      columns(table).map{ |column| ActiveRecord::Base.connection.quote_column_name(column) }
+      columns(table).map { |column| ActiveRecord::Base.connection.quote_column_name(column) }
     end
 
   end
 end
-

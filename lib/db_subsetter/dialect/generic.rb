@@ -11,4 +11,3 @@ module DbSubsetter
     end
   end
 end
-

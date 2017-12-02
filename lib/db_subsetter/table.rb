@@ -1,12 +1,21 @@
 module DbSubsetter
   class Table
-    attr_accessor :name
+    attr_accessor :name, :ignore
 
     def initialize(name, database, exporter)
       @name = name
       @exporter = exporter
       @loaded_ids = false
       @database = database
+      @ignored = false
+    end
+
+    def ignore!
+      @ignored = true
+    end
+
+    def ignored?
+      @ignored
     end
 
     def total_row_count
@@ -15,12 +24,12 @@ module DbSubsetter
     end
 
     def filtered_row_count
-      query = filtered_records.project( Arel.sql('count(1) AS num_rows') )
+      query = filtered_records.project(Arel.sql('count(1) AS num_rows'))
       ActiveRecord::Base.connection.select_one(query.to_sql)['num_rows']
     end
 
     def pages
-      @page_count ||= ( filtered_row_count / Exporter::SELECT_BATCH_SIZE.to_f ).ceil
+      @page_count ||= (filtered_row_count / Exporter::SELECT_BATCH_SIZE.to_f).ceil
     end
 
     def export(verbose: true)
@@ -33,7 +42,7 @@ module DbSubsetter
       @exporter.output.execute("CREATE TABLE #{@name.underscore} ( data TEXT )")
       (0..(pages - 1)).each do |i|
         records_for_page(i).each_slice(Exporter::INSERT_BATCH_SIZE) do |rows|
-          @exporter.output.execute("INSERT INTO #{@name.underscore} (data) VALUES #{ Array.new(rows.size) { '(?)' }.join(',')}", rows.map { |x| scramble_data(cleanup_types(x)) }.map(&:to_json) )
+          @exporter.output.execute("INSERT INTO #{@name.underscore} (data) VALUES #{Array.new(rows.size) { '(?)' }.join(',')}", rows.map { |x| scramble_data(cleanup_types(x)) }.map(&:to_json))
           rows_exported += rows.size
         end
 
@@ -53,11 +62,10 @@ module DbSubsetter
 
     def can_export?(verbose: true)
       puts "Verifying: #{@name} (#{filtered_row_count}/#{total_row_count})" if verbose
-
       errors = []
       begin
         errors << "ERROR: Multiple pages but no primary key on: #{@name}" if pages > 1 && primary_key.blank?
-        errors << "ERROR: Too many rows in: #{@name} (#{filtered_row_count})" if( filtered_row_count > @exporter.max_filtered_rows )
+        errors << "ERROR: Too many rows in: #{@name} (#{filtered_row_count})" if(filtered_row_count > @exporter.max_filtered_rows)
       rescue CircularRelationError
         errors << "ERROR: Circular relations through: #{@name}"
       end
@@ -97,7 +105,15 @@ module DbSubsetter
     private
 
     def filtered_records
-      @exporter.filter.filter(self, arel_table)
+      query = @exporter.filter.apply(self, arel_table)
+
+      if total_row_count > 2000
+        # FIXME: need a mechanism to export everything regardless (i.e., table of states/countries)
+        # perhaps only try to explore foreign_keys if > 1 pages?
+        # FIXME: need a way to opt-out of auto-filters, or at least auto-filters on some keys
+        query = filter_foreign_keys(query)
+      end
+      query
     end
 
     def records_for_page(page)
@@ -105,7 +121,7 @@ module DbSubsetter
       query = query.order(arel_table[primary_key]) if primary_key
 
       query = query.skip(page * Exporter::SELECT_BATCH_SIZE).take(Exporter::SELECT_BATCH_SIZE) if pages > 1
-      sql = query.project( Arel.sql('*') ).to_sql
+      sql = query.project(Arel.sql('*')).to_sql
 
       ActiveRecord::Base.connection.select_rows(sql)
     end
