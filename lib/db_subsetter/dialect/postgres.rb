@@ -7,10 +7,6 @@ module DbSubsetter
         yield
         ActiveRecord::Base.connection.execute('SET session_replication_role = DEFAULT;')
       end
-
-      def self.integrity_problems
-        raise NotImplementedError, 'integrity_problems not implemented for Postgres'
-      end
     end
   end
 end

@@ -7,7 +7,7 @@ module DbSubsetter
       end
 
       def self.integrity_problems
-        []
+        raise NotImplementedError, 'integrity_problems not implemented for this dialect'
       end
 
       def self.truncate_table(table)
