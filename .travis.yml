@@ -37,3 +37,6 @@ services:
 script:
   - bundle exec rake test
   - bundle exec rake rubocop
+branches:
+  except:
+    - windows
