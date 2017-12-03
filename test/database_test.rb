@@ -10,7 +10,7 @@ class DatabaseTest < Minitest::Test
   end
 
   def teardown
-    ActiveRecord::Base.connection_pool.disconnect
+    ActiveRecord::Base.connection_pool.disconnect!
   end
 
   def test_zero_tables_in_empty_db
