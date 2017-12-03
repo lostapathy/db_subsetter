@@ -28,12 +28,12 @@ module DbSubsetter
 
     def total_row_count
       query = arel_table.project('count(1) AS num_rows')
-      ActiveRecord::Base.connection.select_one(query.to_sql)['num_rows']
+      ActiveRecord::Base.connection.select_one(query.to_sql)['num_rows'].to_i # rails-4.2+pg needs to_i
     end
 
     def filtered_row_count
       query = filtered_records.project(Arel.sql('count(1) AS num_rows'))
-      ActiveRecord::Base.connection.select_one(query.to_sql)['num_rows']
+      ActiveRecord::Base.connection.select_one(query.to_sql)['num_rows'].to_i # rails-4.2+pg needs to_i
     end
 
     # FIXME: move the raw SQL into another class
