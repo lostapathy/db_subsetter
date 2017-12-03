@@ -1,5 +1,5 @@
 version: 1.0.{build}-{branch}
-
+image: Visual Studio 2017
 cache:
   - vendor/bundle
 
@@ -14,6 +14,8 @@ install:
   - set PATH=C:\Ruby%RUBY_VERSION%\bin;%PATH%
   - bundle config --local path vendor/bundle
   - bundle install
+  - docker version
+  - docker pull ruby:2.4.2-stretch
 
 build: off
 
