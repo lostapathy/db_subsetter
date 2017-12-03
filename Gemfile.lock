@@ -34,9 +34,11 @@ GEM
       concurrent-ruby (~> 1.0)
     json (2.1.0)
     minitest (5.10.3)
+    mysql2 (0.4.10)
     parallel (1.12.0)
     parser (2.4.0.2)
       ast (~> 2.3)
+    pg (0.21.0)
     powerpack (0.1.1)
     rainbow (2.2.2)
       rake
@@ -71,6 +73,8 @@ DEPENDENCIES
   codeclimate-test-reporter (~> 1.0.0)
   db_subsetter!
   minitest (~> 5.0)
+  mysql2 (~> 0.4.10)
+  pg (~> 0.21.0)
   rake (~> 10.0)
   rubocop (>= 0.51)
   simplecov

@@ -13,15 +13,25 @@ gemfile:
   - gemfiles/rails_5.1.gemfile
   - gemfiles/rails_5.2.gemfile
 
+env:
+  - DATABASE=sqlite
+  - DATABASE=mysql
+  - DATABASE=postgres
 addons:
   code_climate:
     repo_token: 30c89fe1988d654211e1d65cdb44f1dca0f89cea1bfe456ceb1ce67e6daf17b8
+
 # regular test configuration
 after_success:
   - bundle exec codeclimate-test-reporter
 
+before_script:
+  - psql -c 'CREATE DATABASE db_subsetter;' -U postgres
+  - mysql -e 'CREATE DATABASE db_subsetter;'
+
 services:
   - mysql
+  - postgresql
 
 script:
   - bundle exec rake test

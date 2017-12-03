@@ -21,7 +21,7 @@ module DbSubsetter
 
     # Raw list of names of all tables in the database.
     def all_table_names
-      @all_table_names ||= ActiveRecord::Base.connection.tables
+      @all_table_names ||= ActiveRecord::Base.connection.tables - ['ar_internal_metadata']
     end
 
     # Used in debugging/reporting
