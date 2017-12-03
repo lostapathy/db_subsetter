@@ -10,7 +10,8 @@ require 'minitest/autorun'
 DB_CONFIGS = {
   sqlite: { adapter: 'sqlite3', database: ':memory:' },
   mysql: { adapter: 'mysql2', username: 'root', hostname: '127.0.0.1', password: '', database: 'db_subsetter' },
-  postgres: { adapter: 'postgresql', username: 'postgres', hostname: '127.0.0.1', password: '', database: 'db_subsetter' }
+  postgres: { adapter: 'postgresql', username: 'postgres', hostname: '127.0.0.1', password: '', database: 'db_subsetter' },
+  mssql: { adapter: 'sqlserver', username: 'sa', hostname: '127.0.0.1', password: 'Password12!', database: 'db_subsetter' }
 }.freeze
 
 db = ENV['DATABASE'] || 'sqlite'

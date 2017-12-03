@@ -3,6 +3,9 @@ version: 1.0.{build}-{branch}
 cache:
   - vendor/bundle
 
+services:
+  - mssql2017
+
 environment:
   matrix:
     - RUBY_VERSION: 24
@@ -18,7 +21,7 @@ before_test:
   - ruby -v
   - gem -v
   - bundle -v
+  - sqlcmd -S "(local)" -U "sa" -P "Password12!" -Q "CREATE DATABASE db_subsetter;" -d "master"
 
 test_script:
-  - bundle exec rake test
-  - bundle exec rake rubocop
+  - bundle exec rake test DATABASE=mssql
