@@ -18,6 +18,16 @@ env:
   - DATABASE=sqlite
   - DATABASE=mysql
   - DATABASE=postgres
+
+matrix:
+  exclude:
+    # DATABASE=sqlite doesn't work until rails 5.1
+    - gemfile: gemfiles/rails_4.2.gemfile
+      env: DATABASE=sqlite
+
+    - gemfile: gemfiles/rails_5.0.gemfile
+      env: DATABASE=sqlite
+
 addons:
   code_climate:
     repo_token: 30c89fe1988d654211e1d65cdb44f1dca0f89cea1bfe456ceb1ce67e6daf17b8
