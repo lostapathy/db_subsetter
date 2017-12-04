@@ -94,6 +94,7 @@ module DbSubsetter
     end
 
     def filtered_records
+      return arel_table if @exporter.nil? || @exporter.filter.nil?
       query = @exporter.filter.apply(self, arel_table)
 
       if total_row_count > @exporter.max_filtered_rows

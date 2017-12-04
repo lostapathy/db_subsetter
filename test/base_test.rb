@@ -8,6 +8,10 @@ module DbSubsetter
         create_table :posts, force: true do |t|
           t.string :title, null: true
         end
+
+        create_table :authors, force: true do |t|
+          t.string :name, null: false
+        end
       end
     end
 
