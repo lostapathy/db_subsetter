@@ -3,7 +3,9 @@ module DbSubsetter
     # Dialect to subset to/from database without explicit support
     class Generic
       def self.import
-        yield
+        ActiveRecord::Base.connection.disable_referential_integrity do
+          yield
+        end
       end
 
       def self.integrity_problems
