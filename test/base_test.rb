@@ -25,5 +25,15 @@ module DbSubsetter
       end
       ActiveRecord::Base.connection_pool.disconnect!
     end
+
+    def add_foreign_key(table, other_table)
+      if ActiveRecord::Base.connection_config[:adapter] == 'sqlite3'
+        ActiveRecord::Base.connection.execute("alter table #{table} add column #{other_table}_id references #{other_table}(id)")
+      else
+        ActiveRecord::Schema.define do
+          add_reference table, other_table, foreign_key: true
+        end
+      end
+    end
   end
 end

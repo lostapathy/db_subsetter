@@ -33,13 +33,9 @@ class TableTest < DbSubsetter::Test
     assert_equal 0, @db.find_table('posts').send(:relations).size
   end
 
-  # FIXME: add_reference and add_foreign_key are broken in rails for sqlite3.
-  # Need to make workaround and submit failing tests upstream
-  # def test_finds_relation
-  #   ActiveRecord::Schema.define do
-  #     add_reference :posts, :author, foreign_key: true
-  #   end
-  #   setup_db
-  #   assert_equal 1, @db.find_table('posts').send(:relations).size
-  # end
+  def test_finds_relation
+    add_foreign_key(:posts, :author)
+    setup_db
+    assert_equal 1, @db.find_table('posts').send(:relations).size
+  end
 end
