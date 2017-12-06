@@ -18,6 +18,8 @@ module DbSubsetter
     def setup_db
       @exporter = DbSubsetter::Exporter.new
       @db = DbSubsetter::Database.new(@exporter)
+      Post.reset_column_information
+      Author.reset_column_information
     end
 
     def teardown
@@ -29,7 +31,8 @@ module DbSubsetter
 
     def add_reference(table, other_table)
       if ActiveRecord::Base.connection_config[:adapter] == 'sqlite3'
-        ActiveRecord::Base.connection.execute("alter table #{table} add column #{other_table}_id references #{other_table}(id)")
+        other_table_singular = other_table.to_s.sub(/s$/, '')
+        ActiveRecord::Base.connection.execute("alter table #{table} add column #{other_table_singular}_id references #{other_table}(id)")
       else
         ActiveRecord::Schema.define do
           add_reference table, other_table, foreign_key: true

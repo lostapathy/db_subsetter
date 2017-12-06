@@ -73,4 +73,25 @@ class TableTest < DbSubsetter::Test
     remove_foreign_key(:posts, :authors)
     remove_foreign_key(:authors, :posts)
   end
+
+  class Get500Filter < DbSubsetter::Filter
+    def filter_authors(query)
+      query.where(query[:id].in(1..500))
+    end
+  end
+
+  def test_filters_foreign_key
+    add_reference(:posts, :authors)
+    setup_db
+    @exporter.filter = Get500Filter.new
+
+    2500.times do
+      author = Author.create(name: 'whatever name')
+      Post.create!(title: 'test', author_id: author.id)
+    end
+    assert_equal 500, @db.find_table(:authors).filtered_row_count
+    assert_equal 500, @db.find_table(:posts).filtered_row_count
+  ensure
+    remove_foreign_key(:posts, :authors)
+  end
 end

@@ -27,6 +27,13 @@ matrix:
 
     - gemfile: gemfiles/rails_5.0.gemfile
       env: DATABASE=sqlite
+  allow_failures:
+    # foreign keys not working right with mysql/pg and rails 4.2
+    - gemfile: gemfiles/rails_4.2.gemfile
+      env: DATABASE=mysql
+
+    - gemfile: gemfiles/rails_4.2.gemfile
+      env: DATABASE=postgres
 
 addons:
   code_climate:
