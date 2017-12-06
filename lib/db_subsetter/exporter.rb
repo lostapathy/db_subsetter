@@ -79,6 +79,7 @@ module DbSubsetter
       row
     end
 
+    # FIXME: move this into it's own class
     def cleanup_types(row)
       row.map do |field|
         case field

@@ -94,4 +94,17 @@ class TableTest < DbSubsetter::Test
   ensure
     remove_foreign_key(:posts, :authors)
   end
+
+  def test_cant_subset_without_primary_key
+    skip
+  end
+
+  def test_not_exportable_if_too_many_rows
+    skip
+  end
+
+  def test_dont_subset_by_ignored_table
+    skip
+    # probably need more than one case here to cover only getting nil records etc
+  end
 end
