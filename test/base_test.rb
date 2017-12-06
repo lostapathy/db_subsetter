@@ -41,6 +41,8 @@ module DbSubsetter
       ActiveRecord::Schema.define do
         remove_foreign_key table, other_table
       end
+    rescue ArgumentError
+      puts "foreign key not defined #{table} to #{other_table}"
     end
   end
 end
