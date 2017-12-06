@@ -6,7 +6,8 @@ module DbSubsetter
   class Exporter
     attr_writer :max_unfiltered_rows, :max_filtered_rows
     attr_reader :scramblers, :output, :database
-    attr_accessor :filter
+    attr_accessor :filter, :verbose
+    alias verbose? verbose
 
     # this is the batch size we insert into sqlite, which seems to be a reasonable balance of speed and memory usage
     INSERT_BATCH_SIZE = 250
@@ -22,7 +23,7 @@ module DbSubsetter
       puts "\n\n" if verbose
     end
 
-    def export(filename, verbose = true)
+    def export(filename)
       @verbose = verbose
       verify_exportability(verbose)
 
@@ -55,6 +56,7 @@ module DbSubsetter
       @page_counts = {}
       @database = Database.new(self)
       @filter = Filter.new
+      @verbose = true
       $stdout.sync
     end
 

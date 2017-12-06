@@ -36,12 +36,39 @@ class TableTest < DbSubsetter::Test
     assert_equal 1, @db.find_table('posts').send(:relations).size
   end
 
-  def test_circular_relation
-    add_reference(:posts, :author)
-    add_reference(:authors, :post)
+  def test_no_circular_relation_on_empty_tables
+    add_reference(:posts, :authors)
+    add_reference(:authors, :posts)
     setup_db
 
-    @db.find_table(:posts).exportable?
+    assert @db.find_table(:authors).exportable?
+  ensure
+    remove_foreign_key(:posts, :authors)
+    remove_foreign_key(:authors, :posts)
+  end
+
+  def test_no_circular_relation_on_one_empty_tables
+    add_reference(:posts, :authors)
+    add_reference(:authors, :posts)
+    setup_db
+
+    # FIXME: base this on max records in exporter
+    2500.times { Post.create!(title: 'test') }
+    assert @db.find_table(:authors).exportable?
+  ensure
+    remove_foreign_key(:posts, :authors)
+    remove_foreign_key(:authors, :posts)
+  end
+
+  def test_circular_relation_on_full_tables
+    add_reference(:posts, :authors)
+    add_reference(:authors, :posts)
+    setup_db
+
+    # FIXME: base this on max records in exporter
+    2500.times { Post.create!(title: 'test') }
+    2500.times { Author.create!(name: 'test') }
+    assert !@db.find_table(:authors).exportable?
   ensure
     remove_foreign_key(:posts, :authors)
     remove_foreign_key(:authors, :posts)

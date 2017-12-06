@@ -37,7 +37,7 @@ module DbSubsetter
     end
 
     # FIXME: move the raw SQL into another class
-    def export(verbose: true)
+    def export
       print "Exporting: #{@name} (#{pages} pages)" if verbose
 
       rows_exported = 0
@@ -57,15 +57,22 @@ module DbSubsetter
       @exporter.output.execute('INSERT INTO tables VALUES (?, ?, ?)', [@name, rows_exported, columns.to_json])
     end
 
-    def exportable?(verbose: true)
-      errors = []
+    def exportable?
+      export_errors.empty?
+    end
+
+    def export_errors
+      return @export_errors if @export_errors
+
+      @export_errors = []
       begin
         puts "Verifying: #{@name} (#{filtered_row_count}/#{total_row_count})" if verbose
-        errors << "ERROR: Multiple pages but no primary key on: #{@name}" if pages > 1 && primary_key.blank?
-        errors << "ERROR: Too many rows in: #{@name} (#{filtered_row_count})" if filtered_row_count > @exporter.max_filtered_rows
+        @export_errors << "ERROR: Multiple pages but no primary key on: #{@name}" if pages > 1 && primary_key.blank?
+        @export_errors << "ERROR: Too many rows in: #{@name} (#{filtered_row_count})" if filtered_row_count > @exporter.max_filtered_rows
       rescue CircularRelationError
-        errors << "ERROR: Circular relations through: #{@name}"
+        @export_errors << "ERROR: Circular relations through: #{@name}"
       end
+      @export_errors
     end
 
     def filtered_ids
@@ -87,10 +94,14 @@ module DbSubsetter
       ActiveRecord::Base.connection.primary_key(@name)
     end
 
-    private
-
     def relations
       ActiveRecord::Base.connection.foreign_keys(@name).map { |x| Relation.new(x, @database) }
+    end
+
+    private
+
+    def verbose
+      @exporter.verbose?
     end
 
     def filtered_records

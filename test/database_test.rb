@@ -34,4 +34,18 @@ class DatabaseTest < DbSubsetter::Test
     setup_db
     assert_equal({ 'posts' => post_count, 'authors' => author_count }, @db.total_row_counts)
   end
+
+  def test_filtered_row_counts_when_unfiltered
+    post_count = 42
+    post_count.times do
+      Post.create(title: 'test')
+    end
+
+    author_count = 100
+    author_count.times do
+      Author.create(name: 'test')
+    end
+    setup_db
+    assert_equal({ 'posts' => post_count, 'authors' => author_count }, @db.filtered_row_counts)
+  end
 end
