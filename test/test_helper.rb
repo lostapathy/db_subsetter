@@ -10,8 +10,8 @@ require 'base_test'
 
 DB_CONFIGS = {
   sqlite: { adapter: 'sqlite3', database: ':memory:' },
-  mysql: { adapter: 'mysql2', username: 'root', hostname: '127.0.0.1', password: '', database: 'db_subsetter' },
-  postgres: { adapter: 'postgresql', username: 'postgres', hostname: '127.0.0.1', password: '', database: 'db_subsetter' }
+  mysql: { adapter: 'mysql2', username: 'root', host: '127.0.0.1', password: '', database: 'db_subsetter' },
+  postgres: { adapter: 'postgresql', username: 'postgres', host: '127.0.0.1', password: '', database: 'db_subsetter' }
 }.freeze
 
 db = ENV['DATABASE'] || 'sqlite'
