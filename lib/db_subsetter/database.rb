@@ -8,7 +8,7 @@ module DbSubsetter
     end
 
     def find_table(name)
-      @tables[name]
+      @tables[name.to_s]
     end
 
     def tables

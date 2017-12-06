@@ -106,6 +106,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 * Add pre-flight check on import to make sure all tables smell like they will load the data (right columns, at minimum)
 * Finish building and test checks to make sure foreign keys are valid after import
 * Add a verbose mode to display more detailed stats while running an export or import (what table we're on, records exported, time taken)
+* Decouple generating the subset from outputting it, so we could have alternate outputs - like sending direct to another db
 
 ## Contributing
 

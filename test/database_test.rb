@@ -11,6 +11,11 @@ class DatabaseTest < DbSubsetter::Test
     assert_equal 'posts', @db.find_table('posts').name
   end
 
+  def test_find_table_by_symbol
+    setup_db
+    assert_equal 'posts', @db.find_table(:posts).name
+  end
+
   def test_exported_tables
     setup_db
     assert_equal 2, @db.exported_tables.size

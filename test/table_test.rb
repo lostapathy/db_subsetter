@@ -34,8 +34,16 @@ class TableTest < DbSubsetter::Test
   end
 
   def test_finds_relation
-    add_foreign_key(:posts, :author)
+    add_reference(:posts, :author)
     setup_db
     assert_equal 1, @db.find_table('posts').send(:relations).size
+  end
+
+  def test_circular_relation
+    add_reference(:posts, :author)
+    add_reference(:authors, :post)
+    setup_db
+
+    @db.find_table(:posts).exportable?
   end
 end
