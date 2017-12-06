@@ -26,12 +26,16 @@ module DbSubsetter
 
     # Used in debugging/reporting
     def total_row_counts
-      tables.map { |table| { table.name => table.total_row_count } }
+      counts = {}
+      tables.each { |table| counts[table.name] = table.total_row_count }
+      counts
     end
 
     # Used in debugging/reporting
     def filtered_row_counts
-      tables.map { |table| { table.name => table.filtered_row_count } }
+      counts = {}
+      tables.each { |table| counts[table.name] = table.filtered_row_count }
+      counts
     end
   end
 end

@@ -36,5 +36,14 @@ module DbSubsetter
         end
       end
     end
+
+    def remove_foreign_key(table, other_table)
+      ActiveRecord::Schema.define do
+        remove_foreign_key table, other_table
+      end
+    end
   end
 end
+
+class Post < ActiveRecord::Base; end
+class Author < ActiveRecord::Base; end

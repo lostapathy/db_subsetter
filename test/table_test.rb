@@ -1,8 +1,5 @@
 require 'test_helper'
 
-class Post < ActiveRecord::Base
-end
-
 class TableTest < DbSubsetter::Test
   def test_total_row_count
     setup_db
@@ -45,5 +42,8 @@ class TableTest < DbSubsetter::Test
     setup_db
 
     @db.find_table(:posts).exportable?
+  ensure
+    remove_foreign_key(:posts, :authors)
+    remove_foreign_key(:authors, :posts)
   end
 end
