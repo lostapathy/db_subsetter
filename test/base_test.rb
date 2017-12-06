@@ -4,6 +4,7 @@ module DbSubsetter
   class Test < MiniTest::Test
     def setup
       ActiveRecord::Base.establish_connection(DB_CONFIG)
+      ActiveRecord::Schema.verbose = false
       ActiveRecord::Schema.define do
         create_table :posts, force: true do |t|
           t.string :title, null: true
@@ -30,12 +31,12 @@ module DbSubsetter
     end
 
     def add_reference(table, other_table)
+      other_table_singular = other_table.to_s.sub(/s$/, '')
       if ActiveRecord::Base.connection_config[:adapter] == 'sqlite3'
-        other_table_singular = other_table.to_s.sub(/s$/, '')
         ActiveRecord::Base.connection.execute("alter table #{table} add column #{other_table_singular}_id references #{other_table}(id)")
       else
         ActiveRecord::Schema.define do
-          add_reference table, other_table, foreign_key: true
+          add_reference table, other_table_singular, foreign_key: { to_table: other_table }
         end
       end
     end

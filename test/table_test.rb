@@ -31,7 +31,7 @@ class TableTest < DbSubsetter::Test
   end
 
   def test_finds_relation
-    add_reference(:posts, :author)
+    add_reference(:posts, :authors)
     setup_db
     assert_equal 1, @db.find_table('posts').send(:relations).size
   end
