@@ -30,6 +30,7 @@ module DbSubsetter
     def teardown
       ActiveRecord::Schema.define do
         drop_table :posts
+        drop_table :authors
       end
       ActiveRecord::Base.connection_pool.disconnect!
     end
