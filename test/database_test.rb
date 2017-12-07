@@ -27,12 +27,31 @@ class DatabaseTest < DbSubsetter::Test
       Post.create(title: 'test')
     end
 
+    # FIXME: lower these limits by setting max_filtered_rows
     author_count = 4100
     author_count.times do
       Author.create(name: 'test')
     end
     setup_db
     assert_equal({ 'posts' => post_count, 'authors' => author_count }, @db.total_row_counts)
+  end
+
+  def test_empty_db_exportable
+    setup_db
+
+    assert @db.exportable?
+    assert_equal({}, @db.exportability_issues)
+  end
+
+  def test_unfiltered_db_not_exportable
+    11.times do
+      Post.create(title: 'test')
+    end
+    setup_db
+    @exporter.max_filtered_rows = 10
+    assert !@db.exportable?
+
+    assert_equal({ 'posts' => ['Too many rows (11)'] }, @db.exportability_issues)
   end
 
   def test_filtered_row_counts_when_unfiltered

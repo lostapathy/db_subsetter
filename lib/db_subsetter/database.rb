@@ -26,16 +26,21 @@ module DbSubsetter
 
     # Used in debugging/reporting
     def total_row_counts
-      counts = {}
-      tables.each { |table| counts[table.name] = table.total_row_count }
-      counts
+      tables.map { |table| [table.name, table.total_row_count] }.to_h
     end
 
     # Used in debugging/reporting
     def filtered_row_counts
-      counts = {}
-      tables.each { |table| counts[table.name] = table.filtered_row_count }
-      counts
+      tables.map { |table| [table.name, table.filtered_row_count] }.to_h
+    end
+
+    def exportable?
+      puts "Verifying table exportability ...\n\n" if @exporter.verbose?
+      exported_tables.reject(&:exportable?).count.zero?
+    end
+
+    def exportability_issues
+      exported_tables.reject(&:exportable?).map { |table| [table.name, table.exportability_issues] }.to_h
     end
   end
 end

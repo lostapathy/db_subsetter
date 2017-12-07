@@ -13,26 +13,22 @@ module DbSubsetter
     INSERT_BATCH_SIZE = 250
     SELECT_BATCH_SIZE = 5000
 
-    def verify_exportability(verbose = true)
-      puts "Verifying table exportability ...\n\n" if verbose
-      errors = @database.exported_tables.map(&:exportable?).flatten.compact
-      if errors.count > 0
-        puts errors.join("\n")
-        raise ArgumentError, 'Some tables are not exportable'
-      end
-      puts "\n\n" if verbose
-    end
-
     def export(filename)
-      @verbose = verbose
-      verify_exportability(verbose)
+      unless @database.exportable?
+        if verbose?
+          STDERR.puts "\nExportability issues:\n"
+          @database.exportability_issues.each do |table, issues|
+            STDERR.puts table
+            issues.each { |issue| STDERR.puts "\t#{issue}" }
+          end
+        end
+        raise ArgumentError, 'Database is not exportable as filtered!'
+      end
 
       puts "Exporting data...\n\n" if @verbose
       @output = SQLite3::Database.new(filename)
       @output.execute 'CREATE TABLE tables (name TEXT, records_exported INTEGER, columns TEXT)'
-      @database.exported_tables.each do |table|
-        table.export(verbose: @verbose)
-      end
+      @database.exported_tables.each(&:export)
     end
 
     def add_scrambler(scrambler)
@@ -62,7 +58,7 @@ module DbSubsetter
 
     # FIXME: look at this API, passing a table name back seems wrong
     def sanitize_row(table_name, row)
-      row = cleanup_types(row)
+      row = TypeHelper.cleanup_types(row)
       scramble_row(table_name, row)
     end
 
@@ -73,17 +69,6 @@ module DbSubsetter
         row = scrambler.scramble(table_name, row)
       end
       row
-    end
-
-    # FIXME: move this into it's own class
-    def cleanup_types(row)
-      row.map do |field|
-        case field
-        when Date, Time then field.to_s(:db)
-        else
-          field
-        end
-      end
     end
 
     def limit_tables(operation, apply_to)
@@ -98,7 +83,7 @@ module DbSubsetter
           table.send(operation) if table.name =~ apply_to
         end
       else
-        raise ArgumentError, "Don't know how to ignore a #{apply_to.class}"
+        raise ArgumentError, "Don't know how to #{operation} a #{apply_to.class}"
       end
     end
   end

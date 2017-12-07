@@ -59,21 +59,21 @@ module DbSubsetter
     end
 
     def exportable?
-      export_errors.empty?
+      exportability_issues.empty?
     end
 
-    def export_errors
-      return @export_errors if @export_errors
+    def exportability_issues
+      return @exportability_issues if @exportability_issues
 
-      @export_errors = []
+      @exportability_issues = []
       begin
         puts "Verifying: #{@name} (#{filtered_row_count}/#{total_row_count})" if verbose
-        @export_errors << "ERROR: Multiple pages but no primary key on: #{@name}" if pages > 1 && primary_key.blank?
-        @export_errors << "ERROR: Too many rows in: #{@name} (#{filtered_row_count})" if filtered_row_count > @exporter.max_filtered_rows
+        @exportability_issues << 'Multiple pages but no primary key' if pages > 1 && primary_key.blank?
+        @exportability_issues << "Too many rows (#{filtered_row_count})" if filtered_row_count > @exporter.max_filtered_rows
       rescue CircularRelationError
-        @export_errors << "ERROR: Circular relations through: #{@name}"
+        @exportability_issues << 'Circular relations through this table'
       end
-      @export_errors
+      @exportability_issues
     end
 
     def filtered_ids
