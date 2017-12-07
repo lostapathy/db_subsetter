@@ -105,6 +105,7 @@ class ExporterTest < DbSubsetter::Test
     assert_output(nil) do
       assert_raises(ArgumentError) { @exporter.export('test.sqlite3') }
     end
+    @exporter.verbose = false
   ensure
     FileUtils.rm('test.sqlite3') if File.exist?('test.sqlite3')
   end

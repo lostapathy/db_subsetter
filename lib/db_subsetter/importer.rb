@@ -37,7 +37,7 @@ module DbSubsetter
       $stdout.sync
       started_at = Time.now
       print "Importing #{table}" if @verbose
-      @dialect.truncate_table(table)
+      @dialect.truncate_table(quoted_table_name(table))
 
       ActiveRecord::Base.connection.begin_db_transaction
 

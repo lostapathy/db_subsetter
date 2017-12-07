@@ -15,7 +15,7 @@ module DbSubsetter
       def self.truncate_table(table)
         ActiveRecord::Base.connection.truncate(table)
       rescue NotImplementedError
-        ActiveRecord::Base.connection.execute("DELETE FROM #{quoted_table_name(table)}")
+        ActiveRecord::Base.connection.execute("DELETE FROM #{table}")
       end
     end
   end
