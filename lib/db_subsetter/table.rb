@@ -7,6 +7,7 @@ module DbSubsetter
       @name = name
       @exporter = exporter
       @database = database
+      @full_table = @ignored = false
     end
 
     # FIXME: these 4 methods don't feel quite like the correct API yet
@@ -14,12 +15,12 @@ module DbSubsetter
       @ignored = true
     end
 
-    def full_table!
-      @full_table = true
+    def subset_in_full!
+      @subset_in_full = true
     end
 
-    def full_table?
-      @full_table
+    def subset_in_full?
+      @subset_in_full
     end
 
     def ignored?

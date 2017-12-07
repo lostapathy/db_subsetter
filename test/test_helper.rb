@@ -17,5 +17,7 @@ DB_CONFIGS = {
 db = ENV['DATABASE'] || 'sqlite'
 DB_CONFIG = DB_CONFIGS[db.to_sym]
 
+$arel_silence_type_casting_deprecation = true
+
 raise ArgumentError, "Invalid database: #{db}.  Must be in [sqlite, mysql, postgres]" if DB_CONFIG.nil?
 # ActiveRecord::Base.logger = Logger.new(STDOUT)

@@ -84,6 +84,19 @@ Time to run it against our db and see what happens!
 
 TODO: These instructions are a work in progress.  More to come!
 
+## Applications
+
+The obvious application of db_subsetter is to provide a subset for development. There are many other non-obvious uses.
+
+* Capture state when an exception occurs to ease in reproducing the problem
+* Creating reproducible scenarios for complex integration tests
+* Exporting the underlying data used to generate a report, for compliance and audit purposes
+* Archival before deletion of data
+* Providing customers with their own data
+* Migration between RDBMS systems
+
+Come up with something else?  Please file an issue or submit a PR, we'd love to hear about it!
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
@@ -98,15 +111,16 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## TODO
 
-* Tests!
-* Improve the dialect handling
+* Improve the dialect handling (detect dialect automatically in the importer)
 * Better example docs on usage and filtering examples
 * Implement a scrubber API to allow sanitizing or correcting data at export time.  This allows us to keep sensitive/personal data out of the export and also allows correction of broken data that won't re-insert.
 * Add an executable and/or rake task to perform export and import rather than requiring the API to used directly.  Will need a config file to specific custom plugins
 * Add pre-flight check on import to make sure all tables smell like they will load the data (right columns, at minimum)
-* Finish building and test checks to make sure foreign keys are valid after import
+* Examples of validating referential integrity after import
 * Add a verbose mode to display more detailed stats while running an export or import (what table we're on, records exported, time taken)
 * Decouple generating the subset from outputting it, so we could have alternate outputs - like sending direct to another db
+* Provide an alternate API to allow filtering without dealing directly with Arel.  Perhaps a method to pass in an array of IDs to filter from?
+* Add API calls to allow columns to be skipped completely when subsetting
 
 ## Contributing
 

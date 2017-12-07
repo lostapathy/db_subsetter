@@ -2,35 +2,67 @@ require 'test_helper'
 
 class ExporterTest < DbSubsetter::Test
   def test_ignore_tables_with_array
-    skip
+    setup_db
+
+    @exporter.ignore_tables [:posts]
+    assert @db.find_table(:posts).ignored?
+    assert !@db.find_table(:authors).ignored?
   end
 
   def test_ignore_tables_with_string
-    skip
+    setup_db
+
+    @exporter.ignore_tables 'posts'
+    assert @db.find_table(:posts).ignored?
+    assert !@db.find_table(:authors).ignored?
   end
 
   def test_ignore_tables_with_symbol
-    skip
+    setup_db
+
+    @exporter.ignore_tables :posts
+    assert @db.find_table(:posts).ignored?
+    assert !@db.find_table(:authors).ignored?
   end
 
   def test_ignore_tables_with_regex
-    skip
+    setup_db
+
+    @exporter.ignore_tables(/post.*/)
+    assert @db.find_table(:posts).ignored?
+    assert !@db.find_table(:authors).ignored?
   end
 
   def test_export_full_tables_with_array
-    skip
+    setup_db
+
+    @exporter.subset_full_tables [:posts]
+    assert @db.find_table(:posts).subset_in_full?
+    assert !@db.find_table(:authors).subset_in_full?
   end
 
   def test_export_full_tables_with_string
-    skip
+    setup_db
+
+    @exporter.subset_full_tables 'posts'
+    assert @db.find_table(:posts).subset_in_full?
+    assert !@db.find_table(:authors).subset_in_full?
   end
 
   def test_export_full_tables_with_symbol
-    skip
+    setup_db
+
+    @exporter.subset_full_tables :posts
+    assert @db.find_table(:posts).subset_in_full?
+    assert !@db.find_table(:authors).subset_in_full?
   end
 
   def test_export_full_tables_with_regex
-    skip
+    setup_db
+
+    @exporter.subset_full_tables(/post.*/)
+    assert @db.find_table(:posts).subset_in_full?
+    assert !@db.find_table(:authors).subset_in_full?
   end
 
   def test_override_max_filtered_rows

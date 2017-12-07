@@ -4,7 +4,7 @@ require 'active_record'
 module DbSubsetter
   # Manages exporting a subset of data
   class Exporter
-    attr_writer :max_unfiltered_rows, :max_filtered_rows
+    attr_writer :max_filtered_rows
     attr_reader :scramblers, :output, :database
     attr_accessor :filter, :verbose
     alias verbose? verbose
@@ -40,15 +40,11 @@ module DbSubsetter
     end
 
     def ignore_tables(ignored)
-      ignored.each do |t|
-        @database.find_table(t).ignore!
-      end
+      limit_tables('ignore!', ignored)
     end
 
-    def full_tables(full_tables)
-      full_tables.each do |t|
-        @database.find_table(t).full_table!
-      end
+    def subset_full_tables(full_tables)
+      limit_tables('subset_in_full!', full_tables)
     end
 
     def initialize
@@ -87,6 +83,22 @@ module DbSubsetter
         else
           field
         end
+      end
+    end
+
+    def limit_tables(operation, apply_to)
+      if apply_to.is_a?(Array)
+        apply_to.each do |t|
+          @database.find_table(t).send(operation)
+        end
+      elsif apply_to.is_a?(Symbol) || apply_to.is_a?(String)
+        @database.find_table(apply_to).send(operation)
+      elsif apply_to.is_a?(Regexp)
+        @database.tables.each do |table|
+          table.send(operation) if table.name =~ apply_to
+        end
+      else
+        raise ArgumentError, "Don't know how to ignore a #{apply_to.class}"
       end
     end
   end

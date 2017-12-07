@@ -96,11 +96,27 @@ class TableTest < DbSubsetter::Test
   end
 
   def test_cant_subset_without_primary_key
-    skip
+    ActiveRecord::Schema.define do
+      create_table :bogus, force: true, id: false do |t|
+        t.string :title, null: true
+      end
+    end
+
+    (DbSubsetter::Exporter::SELECT_BATCH_SIZE + 10).times { Bogus.create!(title: 'bogus!') }
+    setup_db
+    @exporter.max_filtered_rows = DbSubsetter::Exporter::SELECT_BATCH_SIZE * 2
+
+    assert !@db.find_table(:bogus).exportable?
+  ensure
+    ActiveRecord::Schema.define do
+      drop_table :bogus
+    end
   end
 
   def test_not_exportable_if_too_many_rows
-    skip
+    setup_db
+    2500.times { Post.create!(title: 'test') }
+    assert !@db.find_table(:posts).exportable?
   end
 
   def test_dont_subset_by_ignored_table

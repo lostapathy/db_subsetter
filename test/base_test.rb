@@ -17,8 +17,12 @@ module DbSubsetter
     end
 
     def setup_db
+      # FIXME: database should probably refuse to new up if it's attached to
+      # an exporter that already has a database.  Look at code prior to commit
+      # for ideas for a test.  It's bad behavior but would be an easy user-mistake
       @exporter = DbSubsetter::Exporter.new
-      @db = DbSubsetter::Database.new(@exporter)
+      @exporter.verbose = false
+      @db = @exporter.database
       Post.reset_column_information
       Author.reset_column_information
     end
@@ -53,3 +57,4 @@ end
 
 class Post < ActiveRecord::Base; end
 class Author < ActiveRecord::Base; end
+class Bogus < ActiveRecord::Base; end
