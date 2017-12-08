@@ -22,9 +22,10 @@ class FullStackTest < DbSubsetter::Test
     importer.import
 
     assert_equal 42, Post.count
-    assert_equal 100, Author.count
+    assert_equal 42, Post.distinct(:id).count
 
-    # FIXME: should add more assertions about the content
+    assert_equal 100, Author.count
+    assert_equal 100, Author.distinct(:id).count
   ensure
     FileUtils.rm('test.sqlite3') if File.exist?('test.sqlite3')
   end

@@ -112,14 +112,14 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 ## TODO
 
 * Better example docs on usage and filtering examples
-* Implement a scrubber API to allow sanitizing or correcting data at export time.  This allows us to keep sensitive/personal data out of the export and also allows correction of broken data that won't re-insert.
+* (0.6.0) Implement a scrubber API to allow sanitizing or correcting data at export time.  This allows us to keep sensitive/personal data out of the export and also allows correction of broken data that won't re-insert.
 * Add an executable and/or rake task to perform export and import rather than requiring the API to used directly.  Will need a config file to specific custom plugins
 * Add pre-flight check on import to make sure all tables smell like they will load the data (right columns, at minimum)
 * Examples of validating referential integrity after import
 * Add a verbose mode to display more detailed stats while running an export or import (what table we're on, records exported, time taken)
 * Decouple generating the subset from outputting it, so we could have alternate outputs - like sending direct to another db
 * Provide an alternate API to allow filtering without dealing directly with Arel.  Perhaps a method to pass in an array of IDs to filter from?
-* Add API calls to allow columns to be skipped completely when subsetting
+* (0.6.0) Add API calls to allow columns to be skipped completely when subsetting
 
 ## Contributing
 

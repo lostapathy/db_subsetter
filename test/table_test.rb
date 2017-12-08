@@ -52,8 +52,8 @@ class TableTest < DbSubsetter::Test
     add_reference(:authors, :posts)
     setup_db
 
-    # FIXME: base this on max records in exporter
-    2500.times { Post.create!(title: 'test') }
+    @exporter.max_filtered_rows = 20
+    50.times { Post.create!(title: 'test') }
     assert @db.find_table(:authors).exportable?
   ensure
     remove_foreign_key(:posts, :authors)
@@ -65,32 +65,35 @@ class TableTest < DbSubsetter::Test
     add_reference(:authors, :posts)
     setup_db
 
-    # FIXME: base this on max records in exporter
-    2500.times { Post.create!(title: 'test') }
-    2500.times { Author.create!(name: 'test') }
+    @exporter.max_filtered_rows = 20
+
+    50.times { Post.create!(title: 'test') }
+    50.times { Author.create!(name: 'test') }
     assert !@db.find_table(:authors).exportable?
   ensure
     remove_foreign_key(:posts, :authors)
     remove_foreign_key(:authors, :posts)
   end
 
-  class Get500Filter < DbSubsetter::Filter
+  class Get20Filter < DbSubsetter::Filter
     def filter_authors(query)
-      query.where(query[:id].in(1..500))
+      query.where(query[:id].in(1..20))
     end
   end
 
   def test_filters_foreign_key
     add_reference(:posts, :authors)
     setup_db
-    @exporter.filter = Get500Filter.new
+    @exporter.filter = Get20Filter.new
 
-    2500.times do
+    @exporter.max_filtered_rows = 20
+
+    50.times do
       author = Author.create(name: 'whatever name')
       Post.create!(title: 'test', author_id: author.id)
     end
-    assert_equal 500, @db.find_table(:authors).filtered_row_count
-    assert_equal 500, @db.find_table(:posts).filtered_row_count
+    assert_equal 20, @db.find_table(:authors).filtered_row_count
+    assert_equal 20, @db.find_table(:posts).filtered_row_count
   ensure
     remove_foreign_key(:posts, :authors)
   end

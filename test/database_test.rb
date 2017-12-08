@@ -27,12 +27,12 @@ class DatabaseTest < DbSubsetter::Test
       Post.create(title: 'test')
     end
 
-    # FIXME: lower these limits by setting max_filtered_rows
-    author_count = 4100
+    author_count = 50
     author_count.times do
       Author.create(name: 'test')
     end
     setup_db
+    @exporter.max_filtered_rows = 20
     assert_equal({ 'posts' => post_count, 'authors' => author_count }, @db.total_row_counts)
   end
 
@@ -60,7 +60,7 @@ class DatabaseTest < DbSubsetter::Test
       Post.create(title: 'test')
     end
 
-    author_count = 100
+    author_count = 30
     author_count.times do
       Author.create(name: 'test')
     end
