@@ -18,7 +18,7 @@ class FullStackTest < DbSubsetter::Test
     Post.all.delete_all
     Author.all.delete_all
 
-    importer = DbSubsetter::Importer.new('test.sqlite3', DbSubsetter::Dialect::Sqlite)
+    importer = DbSubsetter::Importer.new('test.sqlite3')
     importer.import
 
     assert_equal 42, Post.count

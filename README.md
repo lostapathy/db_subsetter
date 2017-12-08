@@ -111,7 +111,6 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## TODO
 
-* Improve the dialect handling (detect dialect automatically in the importer)
 * Better example docs on usage and filtering examples
 * Implement a scrubber API to allow sanitizing or correcting data at export time.  This allows us to keep sensitive/personal data out of the export and also allows correction of broken data that won't re-insert.
 * Add an executable and/or rake task to perform export and import rather than requiring the API to used directly.  Will need a config file to specific custom plugins

@@ -3,11 +3,22 @@ require 'sqlite3'
 module DbSubsetter
   # Manages importing a subset of data
   class Importer
-    def initialize(filename, dialect = DbSubsetter::Dialect::Generic)
+    def initialize(filename)
       raise ArgumentError, 'invalid input file' unless File.exist?(filename)
 
       @data = SQLite3::Database.new(filename)
-      @dialect = dialect
+      @dialect = case ActiveRecord::Base.connection_config[:adapter]
+                 when 'mysql2'
+                   DbSubsetter::Dialect::MySQL
+                 when 'postgresql'
+                   DbSubsetter::Dialect::Postgres
+                 when 'sqlite3'
+                   DbSubsetter::Dialect::Sqlite
+                 when 'sqlserver'
+                   DbSubsetter::Dialect::MSSQL
+                 else
+                   DbSubsetter::Dialect::Generic
+                 end
     end
 
     def tables
@@ -27,10 +38,6 @@ module DbSubsetter
       end
     end
 
-    def insert_batch_size
-      100 # more like 500 for mysql
-    end
-
     private
 
     def import_table(table)
@@ -42,7 +49,7 @@ module DbSubsetter
       ActiveRecord::Base.connection.begin_db_transaction
 
       all_rows = @data.execute("SELECT data FROM #{table.underscore}")
-      all_rows.each_slice(insert_batch_size) do |rows|
+      all_rows.each_slice(@dialect::INSERT_BATCH_SIZE) do |rows|
         quoted_rows = rows.map { |row| '(' + quoted_values(row).join(',') + ')' }.join(',')
         insert_sql = "INSERT INTO #{quoted_table_name(table)} (#{quoted_column_names(table).join(',')}) VALUES #{quoted_rows}"
         ActiveRecord::Base.connection.execute(insert_sql)
