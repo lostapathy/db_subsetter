@@ -7,7 +7,7 @@ module DbSubsetter
       @name = name
       @exporter = exporter
       @database = database
-      @full_table = @ignored = false
+      @exportability_issues = @id_cache = @subset_in_full = @loaded_ids = @full_table = @ignored = false
     end
 
     # FIXME: these 4 methods don't feel quite like the correct API yet
@@ -109,9 +109,7 @@ module DbSubsetter
       return arel_table if @exporter.nil? || @exporter.filter.nil?
       query = @exporter.filter.apply(self, arel_table)
 
-      if total_row_count > @exporter.max_filtered_rows
-        query = filter_foreign_keys(query)
-      end
+      query = filter_foreign_keys(query) if total_row_count > @exporter.max_filtered_rows
       query
     end
 

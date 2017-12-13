@@ -37,13 +37,13 @@ class FilterTest < DbSubsetter::Test
   end
   class TestEmptyFilter < DbSubsetter::Filter
     def filter_posts(query)
-      query.where(query[:id].in([]))
+      query.where(query[:id].in(nil))
     end
   end
 
   class TestSubsetFilter < DbSubsetter::Filter
     def filter_posts(query)
-      query.where(query[:id].in(1..10))
+      query.where(query[:id].between(1..10))
     end
   end
 end

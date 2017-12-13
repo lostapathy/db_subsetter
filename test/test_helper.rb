@@ -1,12 +1,12 @@
+$VERBOSE = true
 require 'simplecov'
+require 'minitest/autorun'
 SimpleCov.start do
   add_filter 'test'
 end
 
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'db_subsetter'
-require 'minitest/autorun'
-require 'base_test'
 
 DB_CONFIGS = {
   sqlite: { adapter: 'sqlite3', database: ':memory:' },

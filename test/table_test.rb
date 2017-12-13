@@ -77,7 +77,7 @@ class TableTest < DbSubsetter::Test
 
   class Get20Filter < DbSubsetter::Filter
     def filter_authors(query)
-      query.where(query[:id].in(1..20))
+      query.where(query[:id].between(1..20))
     end
   end
 

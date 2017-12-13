@@ -5,7 +5,7 @@ module DbSubsetter
   # Manages exporting a subset of data
   class Exporter
     attr_writer :max_filtered_rows
-    attr_reader :scramblers, :output, :database
+    attr_reader :scramblers, :output, :database, :max_filtered_rows
     attr_accessor :filter, :verbose
     alias verbose? verbose
 
@@ -50,10 +50,7 @@ module DbSubsetter
       @filter = Filter.new
       @verbose = true
       $stdout.sync
-    end
-
-    def max_filtered_rows
-      @max_filtered_rows || 2000
+      @max_filtered_rows = 2000
     end
 
     # FIXME: look at this API, passing a table name back seems wrong
