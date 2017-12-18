@@ -1,7 +1,7 @@
 require 'test_helper'
 
 class TestScrambler < DbSubsetter::Scrambler
-  def scramble_tests row
+  def scramble_tests(_row)
     'scramble tests called'
   end
 end
