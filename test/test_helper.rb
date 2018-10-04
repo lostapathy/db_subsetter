@@ -5,7 +5,7 @@ SimpleCov.start do
   add_filter 'test'
 end
 
-$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'db_subsetter'
 
 DB_CONFIGS = {

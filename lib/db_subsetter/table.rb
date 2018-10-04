@@ -80,6 +80,7 @@ module DbSubsetter
       return @id_cache if @id_cache
 
       raise CircularRelationError if @loaded_ids
+
       @loaded_ids = true
 
       sql = filtered_records.project(:id).to_sql
@@ -107,9 +108,10 @@ module DbSubsetter
 
     def filtered_records
       return arel_table if @exporter.nil? || @exporter.filter.nil?
-      query = @exporter.filter.apply(self, arel_table)
 
+      query = @exporter.filter.apply(self, arel_table)
       query = filter_foreign_keys(query) if total_row_count > @exporter.max_filtered_rows
+
       query
     end
 
@@ -130,7 +132,7 @@ module DbSubsetter
     end
 
     def pages
-      @page_count ||= (filtered_row_count / Exporter::SELECT_BATCH_SIZE.to_f).ceil
+      @pages ||= (filtered_row_count / Exporter::SELECT_BATCH_SIZE.to_f).ceil
     end
   end
 end
