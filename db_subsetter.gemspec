@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'minitest', '~> 5.0'
   spec.add_development_dependency 'mysql2', '~> 0.4.10'
   spec.add_development_dependency 'pg', '~> 0.21.0'
-  spec.add_development_dependency 'rake', '~> 10.0'
+  spec.add_development_dependency 'rake', '>= 12.3.3'
 
   spec.add_dependency 'activerecord', '>= 4.2.6'
   spec.add_dependency 'random-word', '~> 1.3'
